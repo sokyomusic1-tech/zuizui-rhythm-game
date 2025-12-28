@@ -2,6 +2,7 @@ import { ScrollView, Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useGame } from "@/lib/game-context";
+import { GoogleAdSense } from "@/components/google-adsense";
 import { useEffect } from "react";
 
 /**
@@ -62,6 +63,11 @@ export default function HomeScreen() {
             >
               <Text className="text-white font-bold text-2xl">PLAY</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Google AdSense 広告 */}
+          <View className="mt-8 w-full max-w-sm self-center">
+            <GoogleAdSense client="ca-pub-2991936078376292" />
           </View>
         </View>
       </ScrollView>

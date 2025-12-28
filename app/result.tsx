@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useGame, type Difficulty } from "@/lib/game-context";
+import { GoogleAdSense } from "@/components/google-adsense";
 
 export default function ResultScreen() {
   const router = useRouter();
@@ -85,6 +86,11 @@ export default function ResultScreen() {
           >
             <Text className="text-white text-center font-bold text-lg">MENU</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Google AdSense 広告 */}
+        <View className="mt-8 w-full max-w-sm self-center">
+          <GoogleAdSense client="ca-pub-2991936078376292" />
         </View>
       </View>
     </ScreenContainer>
