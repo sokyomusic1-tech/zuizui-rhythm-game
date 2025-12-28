@@ -1,6 +1,8 @@
 import { ScrollView, Text, View, TouchableOpacity } from "react-native";
-
+import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
+import { useGame } from "@/lib/game-context";
+import { useEffect } from "react";
 
 /**
  * Home Screen - NativeWind Example
@@ -15,30 +17,50 @@ import { ScreenContainer } from "@/components/screen-container";
  * - Custom colors defined in tailwind.config.js
  */
 export default function HomeScreen() {
+  const router = useRouter();
+  const { highScores, loadHighScores } = useGame();
+
+  useEffect(() => {
+    loadHighScores();
+  }, []);
+
   return (
-    <ScreenContainer className="p-6">
+    <ScreenContainer className="bg-black p-6">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="flex-1 gap-8">
-          {/* Hero Section */}
-          <View className="items-center gap-2">
-            <Text className="text-4xl font-bold text-foreground">Welcome</Text>
-            <Text className="text-base text-muted text-center">
-              Edit app/(tabs)/index.tsx to get started
-            </Text>
+        <View className="flex-1 justify-center gap-8">
+          {/* タイトル */}
+          <View className="items-center gap-4">
+            <Text className="text-5xl font-bold text-white">ZUIZUI</Text>
+            <Text className="text-xl text-white">RHYTHM GAME</Text>
+            <View className="w-20 h-1 bg-primary rounded-full" />
           </View>
 
-          {/* Example Card */}
-          <View className="w-full max-w-sm self-center bg-surface rounded-2xl p-6 shadow-sm border border-border">
-            <Text className="text-lg font-semibold text-foreground mb-2">NativeWind Ready</Text>
-            <Text className="text-sm text-muted leading-relaxed">
-              Use Tailwind CSS classes directly in your React Native components.
-            </Text>
+          {/* ハイスコア */}
+          <View className="bg-surface rounded-2xl p-6 w-full max-w-sm self-center">
+            <Text className="text-white text-lg font-bold mb-4 text-center">ハイスコア</Text>
+            <View className="gap-3">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-green-400 font-semibold">EASY</Text>
+                <Text className="text-white text-xl font-bold">{highScores.easy}</Text>
+              </View>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-blue-400 font-semibold">NORMAL</Text>
+                <Text className="text-white text-xl font-bold">{highScores.normal}</Text>
+              </View>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-red-400 font-semibold">HARD</Text>
+                <Text className="text-white text-xl font-bold">{highScores.hard}</Text>
+              </View>
+            </View>
           </View>
 
-          {/* Example Button */}
+          {/* プレイボタン */}
           <View className="items-center">
-            <TouchableOpacity className="bg-primary px-6 py-3 rounded-full active:opacity-80">
-              <Text className="text-background font-semibold">Get Started</Text>
+            <TouchableOpacity
+              onPress={() => router.push("/difficulty")}
+              className="bg-primary px-12 py-5 rounded-full active:opacity-80"
+            >
+              <Text className="text-white font-bold text-2xl">PLAY</Text>
             </TouchableOpacity>
           </View>
         </View>

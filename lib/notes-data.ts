@@ -1,0 +1,79 @@
+import { Note, Difficulty } from "./game-context";
+
+// 曲の長さ: 3分26秒 = 206秒
+const SONG_DURATION = 206;
+
+// BPMを仮定（和風ロックなので中程度のテンポ）
+const BPM = 140;
+const BEAT_INTERVAL = 60 / BPM; // 1拍の秒数
+
+/**
+ * 難易度に応じたノーツデータを生成
+ */
+function generateNotes(difficulty: Difficulty): Note[] {
+  const notes: Note[] = [];
+  let noteId = 0;
+
+  // 難易度別の設定
+  const config = {
+    easy: {
+      noteInterval: BEAT_INTERVAL * 2, // 2拍に1回
+      laneVariety: 2, // 2レーンのみ使用
+    },
+    normal: {
+      noteInterval: BEAT_INTERVAL, // 1拍に1回
+      laneVariety: 3, // 3レーンまで使用
+    },
+    hard: {
+      noteInterval: BEAT_INTERVAL / 2, // 0.5拍に1回
+      laneVariety: 4, // 全レーン使用
+    },
+  };
+
+  const { noteInterval, laneVariety } = config[difficulty];
+
+  // イントロ（最初の8秒はノーツなし）
+  let currentTime = 8;
+
+  // メインパート
+  while (currentTime < SONG_DURATION - 10) {
+    // 最後の10秒前まで
+    const lane = Math.floor(Math.random() * laneVariety) as 0 | 1 | 2 | 3;
+    notes.push({
+      id: `note_${noteId++}`,
+      time: currentTime,
+      lane,
+    });
+
+    // 次のノーツまでの時間（ランダム性を少し加える）
+    const randomOffset = (Math.random() - 0.5) * noteInterval * 0.2;
+    currentTime += noteInterval + randomOffset;
+  }
+
+  // アウトロ（最後の10秒は徐々に減らす）
+  while (currentTime < SONG_DURATION - 2) {
+    const lane = Math.floor(Math.random() * laneVariety) as 0 | 1 | 2 | 3;
+    notes.push({
+      id: `note_${noteId++}`,
+      time: currentTime,
+      lane,
+    });
+    currentTime += noteInterval * 2; // 間隔を広げる
+  }
+
+  return notes;
+}
+
+// 各難易度のノーツデータを事前生成
+export const NOTES_DATA: Record<Difficulty, Note[]> = {
+  easy: generateNotes("easy"),
+  normal: generateNotes("normal"),
+  hard: generateNotes("hard"),
+};
+
+// ノーツ数の情報
+export const NOTES_COUNT = {
+  easy: NOTES_DATA.easy.length,
+  normal: NOTES_DATA.normal.length,
+  hard: NOTES_DATA.hard.length,
+};
