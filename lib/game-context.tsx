@@ -11,7 +11,7 @@ export interface Note {
 }
 
 export interface JudgementResult {
-  type: "perfect" | "good" | "miss";
+  type: "perfect" | "good" | "normal" | "miss";
   time: number;
 }
 

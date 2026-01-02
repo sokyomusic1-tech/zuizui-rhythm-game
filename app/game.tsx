@@ -1,127 +1,190 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, Pressable, Dimensions, Platform } from "react-native";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { View, Text, Pressable, Dimensions, Platform, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
 import * as Haptics from "expo-haptics";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
-} from "react-native-reanimated";
-import { memo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
-import { useGame, type GameScore, type JudgementResult } from "@/lib/game-context";
+import { useGame, type JudgementResult } from "@/lib/game-context";
 import { NOTES_DATA, generateNotes } from "@/lib/notes-data";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
-const NOTE_FALL_DURATION = 2000; // ノーツが落ちる時間（ミリ秒）
-const JUDGEMENT_PERFECT = 50; // Perfect判定の許容誤差（ミリ秒）
-const JUDGEMENT_GOOD = 100; // Good判定の許容誤差（ミリ秒）
+const NOTE_FALL_DURATION = 2500; // ノーツが落ちる時間（ミリ秒）
+const JUDGEMENT_PERFECT = 150; // Perfect判定の許容誤差（ミリ秒）
+const JUDGEMENT_GOOD = 300; // Good判定の許容誤差（ミリ秒）
+const JUDGEMENT_NORMAL = 500; // Normal判定の許容誤差（ミリ秒）
+const MISS_THRESHOLD = 700; // Miss判定のタイムアウト（ミリ秒）
 const LANE_WIDTH = SCREEN_WIDTH / 4;
 const TAP_AREA_HEIGHT = 80;
 const NOTE_SIZE = 60;
+
+// ノーツコンポーネントをメモ化して点滅を防ぐ
+const Note = React.memo(({ note, gameTime }: { note: any; gameTime: number }) => {
+  const noteTime = note.time * 1000;
+  const progress = (gameTime - (noteTime - NOTE_FALL_DURATION)) / NOTE_FALL_DURATION;
+  const top = progress * (SCREEN_HEIGHT - TAP_AREA_HEIGHT);
+
+  return (
+    <View
+      className="absolute bg-primary rounded-full"
+      pointerEvents="none"
+      style={{
+        width: NOTE_SIZE,
+        height: NOTE_SIZE,
+        top,
+        left: (LANE_WIDTH - NOTE_SIZE) / 2,
+      }}
+    />
+  );
+});
 
 export default function GameScreen() {
   const router = useRouter();
   const { currentDifficulty, saveHighScore, setLastGameResult, selectedSong } = useGame();
   const [gameStarted, setGameStarted] = useState(false);
+  const [countdown, setCountdown] = useState(3);
   const [gameTime, setGameTime] = useState(0);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [perfectCount, setPerfectCount] = useState(0);
   const [goodCount, setGoodCount] = useState(0);
+  const [normalCount, setNormalCount] = useState(0);
   const [missCount, setMissCount] = useState(0);
   const [activeNotes, setActiveNotes] = useState<string[]>([]);
   const [judgementDisplay, setJudgementDisplay] = useState<JudgementResult | null>(null);
+  const [tapEffects, setTapEffects] = useState<{ [key: number]: boolean }>({});
+  const [perfectEffects, setPerfectEffects] = useState<{ [key: string]: { lane: number; position: number } }>({});
   const gameTimeRef = useRef(0);
   const processedNotesRef = useRef(new Set<string>());
   const gameEndCalledRef = useRef(false);
+  const intervalRef = useRef<any>(null);
 
   const player = useAudioPlayer(selectedSong?.audioFile || require("@/assets/audio/zuizui_song.mp3"));
 
   // 選択された曲のBPMに基づいてノーツを生成
-  const notes = currentDifficulty && selectedSong
-    ? generateNotes(currentDifficulty, selectedSong.bpm)
-    : currentDifficulty
-    ? NOTES_DATA[currentDifficulty]
-    : [];
+  const notes = useMemo(() => {
+    return currentDifficulty && selectedSong
+      ? generateNotes(currentDifficulty, selectedSong.bpm)
+      : currentDifficulty
+      ? NOTES_DATA[currentDifficulty]
+      : [];
+  }, [currentDifficulty, selectedSong]);
 
-  // ゲーム終了処理（useCallbackで最新の値を参照）
+  // コンポーネントのアンマウント時に音楽を停止
+  useEffect(() => {
+    // ブラウザを閉じた時に音楽を停止
+    const handleBeforeUnload = () => {
+      if (player) {
+        player.pause();
+        player.release();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && player) {
+        player.pause();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      if (player) {
+        player.pause();
+        player.release();
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
+  }, [player]);
+
+  // ゲーム終了処理
   const handleGameEnd = useCallback(async () => {
-    if (gameEndCalledRef.current) return; // 二重呼び出し防止
+    if (gameEndCalledRef.current) return;
     gameEndCalledRef.current = true;
     
+    // 音楽を停止
     player.pause();
-
-    alert(`Game End: score=${score}, perfect=${perfectCount}, good=${goodCount}`);
+    
+    // タイマーをクリア
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
 
     if (currentDifficulty) {
       await saveHighScore(currentDifficulty, score);
       
-      // ゲーム結果をコンテキストに保存
       const result = {
         score,
         perfect: perfectCount,
-        good: goodCount,
+        good: goodCount + normalCount, // GoodとNormalを合算
         miss: missCount,
         maxCombo,
         difficulty: currentDifficulty,
       };
       
-      console.log("Saving game result:", result);
       setLastGameResult(result);
-      
-      alert(`Saved result: score=${result.score}`);
     }
 
-    // リザルト画面へ遷移
     router.replace("/result" as any);
-  }, [score, perfectCount, goodCount, missCount, maxCombo, currentDifficulty, saveHighScore, setLastGameResult, router, player]);
+  }, [score, perfectCount, goodCount, normalCount, missCount, maxCombo, currentDifficulty, saveHighScore, setLastGameResult, router, player]);
 
   // 音声設定
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true });
-    return () => {
-      player.release();
-    };
-  }, [player]);
+  }, []);
 
-  // ゲーム開始
+  // カウントダウン
   useEffect(() => {
-    if (!gameStarted) {
-      // 3秒のカウントダウン後に開始
+    if (countdown > 0) {
       const timer = setTimeout(() => {
-        setGameStarted(true);
-        player.play();
-      }, 3000);
+        setCountdown(countdown - 1);
+      }, 1000);
       return () => clearTimeout(timer);
+    } else if (countdown === 0 && !gameStarted) {
+      setGameStarted(true);
+      player.play();
     }
-  }, [gameStarted, player]);
+  }, [countdown, gameStarted, player]);
 
   // ゲームタイマー
   useEffect(() => {
     if (!gameStarted) return;
 
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       gameTimeRef.current += 16;
       setGameTime(gameTimeRef.current);
 
-      // ゲーム終了チェック（曲の長さ + 2秒）
-      if (gameTimeRef.current > 208000 && !gameEndCalledRef.current) {
-        clearInterval(interval);
-        // 次のレンダリングで呼び出す
+      // ゲーム終了チェック（曲の長さ + 3秒）
+      if (gameTimeRef.current > 211000 && !gameEndCalledRef.current) {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
         setTimeout(() => handleGameEnd(), 0);
       }
     }, 16);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [gameStarted, handleGameEnd]);
 
-  // アクティブなノーツを更新
+  // アク  // ノーツの更新
   useEffect(() => {
-    if (!gameStarted) return;
+    if (!gameStarted || gameEndCalledRef.current) return;
 
     const currentTime = gameTime;
     const upcomingNotes = notes.filter((note) => {
@@ -135,8 +198,7 @@ export default function GameScreen() {
       setActiveNotes((prev) => [...prev, ...newActiveNotes]);
       newActiveNotes.forEach((id) => processedNotesRef.current.add(id));
     }
-
-    // 画面外に出たノーツを削除（Miss判定）
+    // 画面外に出たノーツを削除（Miss判定）- 判定範囲を延長
     setActiveNotes((prev) =>
       prev.filter((noteId) => {
         const note = notes.find((n) => n.id === noteId);
@@ -145,8 +207,8 @@ export default function GameScreen() {
         const noteTime = note.time * 1000;
         const timeDiff = currentTime - noteTime;
 
-        if (timeDiff > JUDGEMENT_GOOD) {
-          // Miss判定
+        // Miss判定の範囲を超えたら削除
+        if (timeDiff > MISS_THRESHOLD) {
           handleMiss();
           return false;
         }
@@ -158,9 +220,17 @@ export default function GameScreen() {
   const handleTap = (lane: number) => {
     if (!gameStarted) return;
 
+    // タップエフェクトを表示
+    setTapEffects(prev => ({ ...prev, [lane]: true }));
+    setTimeout(() => {
+      setTapEffects(prev => ({ ...prev, [lane]: false }));
+    }, 200);
+
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+
+    console.log(`Tap on lane ${lane}, gameTime: ${gameTime}, activeNotes:`, activeNotes.length);
 
     const currentTime = gameTime;
     const laneNotes = activeNotes
@@ -168,8 +238,7 @@ export default function GameScreen() {
       .filter((note) => note && note.lane === lane);
 
     if (laneNotes.length === 0) {
-      handleMiss();
-      return;
+      return; // 空振りはMissにしない
     }
 
     // 最も近いノーツを判定
@@ -181,7 +250,6 @@ export default function GameScreen() {
     });
 
     if (!closestNote) {
-      handleMiss();
       return;
     }
 
@@ -190,11 +258,26 @@ export default function GameScreen() {
     // ノーツを削除
     setActiveNotes((prev) => prev.filter((id) => id !== closestNote.id));
 
-    // 判定
+    // 4段階判定
     if (timeDiff <= JUDGEMENT_PERFECT) {
       handlePerfect();
+      // Perfectエフェクトをノーツの位置に表示
+      const noteTime = closestNote.time * 1000;
+      const progress = (currentTime - (noteTime - NOTE_FALL_DURATION)) / NOTE_FALL_DURATION;
+      const notePosition = progress * (SCREEN_HEIGHT - TAP_AREA_HEIGHT);
+      const effectId = `${Date.now()}_${lane}`;
+      setPerfectEffects(prev => ({ ...prev, [effectId]: { lane, position: notePosition } }));
+      setTimeout(() => {
+        setPerfectEffects(prev => {
+          const newEffects = { ...prev };
+          delete newEffects[effectId];
+          return newEffects;
+        });
+      }, 500);
     } else if (timeDiff <= JUDGEMENT_GOOD) {
       handleGood();
+    } else if (timeDiff <= JUDGEMENT_NORMAL) {
+      handleNormal();
     } else {
       handleMiss();
     }
@@ -208,44 +291,53 @@ export default function GameScreen() {
       return newCombo;
     });
     setPerfectCount((prev) => prev + 1);
-    setJudgementDisplay({ type: "perfect", time: Date.now() });
+    showJudgement("perfect");
   };
 
   const handleGood = () => {
-    setScore((prev) => prev + 50);
+    setScore((prev) => prev + 70);
     setCombo((prev) => {
       const newCombo = prev + 1;
       setMaxCombo((max) => Math.max(max, newCombo));
       return newCombo;
     });
     setGoodCount((prev) => prev + 1);
-    setJudgementDisplay({ type: "good", time: Date.now() });
+    showJudgement("good");
+  };
+
+  const handleNormal = () => {
+    setScore((prev) => prev + 40);
+    setCombo((prev) => {
+      const newCombo = prev + 1;
+      setMaxCombo((max) => Math.max(max, newCombo));
+      return newCombo;
+    });
+    setNormalCount((prev) => prev + 1);
+    showJudgement("normal");
   };
 
   const handleMiss = () => {
     setCombo(0);
     setMissCount((prev) => prev + 1);
-    setJudgementDisplay({ type: "miss", time: Date.now() });
+    showJudgement("miss");
   };
 
-  // 判定表示を自動で消す
-  useEffect(() => {
-    if (judgementDisplay) {
-      const timer = setTimeout(() => {
-        setJudgementDisplay(null);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [judgementDisplay]);
+  const showJudgement = (type: "perfect" | "good" | "normal" | "miss") => {
+    setJudgementDisplay({ type, time: gameTime });
+    setTimeout(() => setJudgementDisplay(null), 500);
+  };
 
-  // カウントダウン表示
-  const [countdown, setCountdown] = useState(3);
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [countdown]);
+  // レーンごとのノーツをメモ化
+  const notesByLane = useMemo(() => {
+    const lanes: { [key: number]: any[] } = { 0: [], 1: [], 2: [], 3: [] };
+    activeNotes.forEach((noteId) => {
+      const note = notes.find((n) => n.id === noteId);
+      if (note) {
+        lanes[note.lane].push(note);
+      }
+    });
+    return lanes;
+  }, [activeNotes, notes]);
 
   return (
     <ScreenContainer className="bg-black">
@@ -278,6 +370,8 @@ export default function GameScreen() {
                   ? "text-yellow-400"
                   : judgementDisplay.type === "good"
                   ? "text-green-400"
+                  : judgementDisplay.type === "normal"
+                  ? "text-blue-400"
                   : "text-red-400"
               }`}
             >
@@ -288,37 +382,45 @@ export default function GameScreen() {
 
         {/* ノーツレーン */}
         <View className="flex-1 flex-row">
+          {/* Perfect爆発エフェクト */}
+          {Object.entries(perfectEffects).map(([effectId, effect]) => (
+            <View
+              key={effectId}
+              className="absolute items-center justify-center"
+              style={{
+                left: effect.lane * LANE_WIDTH + (LANE_WIDTH - 200) / 2,
+                top: effect.position - 100,
+                width: 200,
+                height: 200,
+                pointerEvents: 'none',
+              }}
+            >
+              <Image
+                source={require('@/assets/images/particle_effect.png')}
+                style={{ width: 200, height: 200 }}
+                resizeMode="contain"
+              />
+            </View>
+          ))}
           {[0, 1, 2, 3].map((lane) => (
             <Pressable
               key={lane}
               onPress={() => handleTap(lane)}
               className="flex-1 border-r border-gray-800"
-              style={{ width: LANE_WIDTH }}
+              style={[
+                { width: LANE_WIDTH },
+                tapEffects[lane] && { backgroundColor: 'rgba(10, 126, 164, 0.3)' }
+              ]}
             >
-              {/* ノーツ */}
-              {activeNotes
-                .map((noteId) => notes.find((n) => n.id === noteId))
-                .filter((note) => note && note.lane === lane)
-                .map((note) => {
-                  if (!note) return null;
-                  const noteTime = note.time * 1000;
-                  const progress = (gameTime - (noteTime - NOTE_FALL_DURATION)) / NOTE_FALL_DURATION;
-                  const top = progress * (SCREEN_HEIGHT - TAP_AREA_HEIGHT);
+              {/* タップエフェクト */}
+              {tapEffects[lane] && (
+                <View className="absolute inset-0 bg-primary/30" />
+              )}
 
-                  return (
-                    <View
-                      key={note.id}
-                      className="absolute bg-primary rounded-full"
-                      pointerEvents="none"
-                      style={{
-                        width: NOTE_SIZE,
-                        height: NOTE_SIZE,
-                        top,
-                        left: (LANE_WIDTH - NOTE_SIZE) / 2,
-                      }}
-                    />
-                  );
-                })}
+              {/* ノーツ */}
+              {notesByLane[lane].map((note) => (
+                <Note key={note.id} note={note} gameTime={gameTime} />
+              ))}
             </Pressable>
           ))}
         </View>
@@ -327,6 +429,7 @@ export default function GameScreen() {
         <View
           className="absolute bottom-0 left-0 right-0 flex-row"
           style={{ height: TAP_AREA_HEIGHT }}
+          pointerEvents="none"
         >
           {[0, 1, 2, 3].map((lane) => (
             <View

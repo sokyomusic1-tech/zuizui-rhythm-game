@@ -155,7 +155,7 @@ export default function LeaderboardScreen() {
 
         {/* Google AdSense 広告 */}
         <View className="mt-4 mb-4">
-          <GoogleAdSense client="ca-pub-2991936078376292" />
+          <GoogleAdSense client="ca-pub-2991936078376292" slot="5726193644" />
         </View>
 
         {/* 戻るボタン */}

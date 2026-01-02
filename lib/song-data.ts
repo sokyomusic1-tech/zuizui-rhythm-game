@@ -21,4 +21,11 @@ export const songs: SongData[] = [
     coverImage: require("@/assets/images/songs/zuizui_anime.jpg"),
     audioFile: require("@/assets/audio/zuizui_anime.mp3"),
   },
+  {
+    id: "moechakka_fire",
+    title: "モエチャッカファイア (Cover) Metal x EDM",
+    bpm: 81.6,
+    coverImage: require("@/assets/images/songs/moechakka_fire.jpg"),
+    audioFile: require("@/assets/audio/moechakka_fire.mp3"),
+  },
 ];

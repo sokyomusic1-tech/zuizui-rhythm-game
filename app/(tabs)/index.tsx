@@ -112,7 +112,7 @@ export default function HomeScreen() {
 
           {/* Google AdSense 広告 */}
           <View className="mt-8 w-full max-w-sm self-center">
-            <GoogleAdSense client="ca-pub-2991936078376292" />
+            <GoogleAdSense client="ca-pub-2991936078376292" slot="5726193644" />
           </View>
         </View>
       </ScrollView>
