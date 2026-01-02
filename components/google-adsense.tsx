@@ -29,7 +29,7 @@ export function GoogleAdSense({
   slot,
   format = "auto",
   responsive = true,
-}: GoogleAdSenseProps) {
+}: GoogleAdSenseProps): React.ReactElement | null {
   useEffect(() => {
     if (Platform.OS === "web" && typeof window !== "undefined") {
       try {

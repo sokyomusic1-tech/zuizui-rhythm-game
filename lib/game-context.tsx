@@ -35,11 +35,17 @@ interface GameContextType {
   saveHighScore: (difficulty: Difficulty, score: number) => Promise<void>;
   currentDifficulty: Difficulty | null;
   setCurrentDifficulty: (difficulty: Difficulty | null) => void;
+  lastGameResult: GameScore | null;
+  setLastGameResult: (result: GameScore | null) => void;
+  username: string | null;
+  setUsername: (name: string) => Promise<void>;
+  loadUsername: () => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 const HIGH_SCORES_KEY = "@rhythm_game_high_scores";
+const USERNAME_KEY = "@rhythm_game_username";
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [highScores, setHighScores] = useState<HighScores>({
@@ -48,6 +54,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     hard: 0,
   });
   const [currentDifficulty, setCurrentDifficulty] = useState<Difficulty | null>(null);
+  const [lastGameResult, setLastGameResult] = useState<GameScore | null>(null);
+  const [username, setUsernameState] = useState<string | null>(null);
 
   const loadHighScores = useCallback(async () => {
     try {
@@ -76,6 +84,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     [highScores]
   );
 
+  const loadUsername = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem(USERNAME_KEY);
+      if (stored) {
+        setUsernameState(stored);
+      }
+    } catch (error) {
+      console.error("Failed to load username:", error);
+    }
+  }, []);
+
+  const setUsername = useCallback(async (name: string) => {
+    try {
+      await AsyncStorage.setItem(USERNAME_KEY, name);
+      setUsernameState(name);
+    } catch (error) {
+      console.error("Failed to save username:", error);
+    }
+  }, []);
+
   return (
     <GameContext.Provider
       value={{
@@ -84,6 +112,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         saveHighScore,
         currentDifficulty,
         setCurrentDifficulty,
+        lastGameResult,
+        setLastGameResult,
+        username,
+        setUsername,
+        loadUsername,
       }}
     >
       {children}

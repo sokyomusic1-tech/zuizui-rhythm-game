@@ -1,7 +1,9 @@
+import { z } from "zod";
 import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import * as db from "./db";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -17,12 +19,49 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  // Leaderboard API
+  leaderboard: router({
+    // スコアを送信
+    submitScore: publicProcedure
+      .input(
+        z.object({
+          username: z.string().min(1).max(50),
+          score: z.number().int().min(0),
+          difficulty: z.enum(["easy", "normal", "hard"]),
+          perfect: z.number().int().min(0),
+          good: z.number().int().min(0),
+          miss: z.number().int().min(0),
+          maxCombo: z.number().int().min(0),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.createScore(input);
+        return { success: true };
+      }),
+
+    // 難易度別ランキングを取得
+    getByDifficulty: publicProcedure
+      .input(
+        z.object({
+          difficulty: z.enum(["easy", "normal", "hard"]),
+          limit: z.number().int().min(1).max(100).optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return db.getLeaderboard(input.difficulty, input.limit);
+      }),
+
+    // 全難易度のランキングを取得
+    getAll: publicProcedure
+      .input(
+        z.object({
+          limit: z.number().int().min(1).max(100).optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return db.getAllLeaderboards(input.limit);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

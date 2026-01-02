@@ -1,27 +1,80 @@
-import React, { useEffect } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
-import { useGame, type Difficulty } from "@/lib/game-context";
+import { useGame } from "@/lib/game-context";
 import { GoogleAdSense } from "@/components/google-adsense";
+import { trpc } from "@/lib/trpc";
+import { Platform } from "react-native";
 
 export default function ResultScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const { highScores, loadHighScores } = useGame();
+  const { highScores, loadHighScores, lastGameResult, username } = useGame();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  
+  const submitScoreMutation = trpc.leaderboard.submitScore.useMutation();
 
-  const score = parseInt(params.score as string) || 0;
-  const perfect = parseInt(params.perfect as string) || 0;
-  const good = parseInt(params.good as string) || 0;
-  const miss = parseInt(params.miss as string) || 0;
-  const maxCombo = parseInt(params.maxCombo as string) || 0;
-  const difficulty = (params.difficulty as Difficulty) || "normal";
+  // コンテキストからゲーム結果を取得
+  const score = lastGameResult?.score || 0;
+  const perfect = lastGameResult?.perfect || 0;
+  const good = lastGameResult?.good || 0;
+  const miss = lastGameResult?.miss || 0;
+  const maxCombo = lastGameResult?.maxCombo || 0;
+  const difficulty = lastGameResult?.difficulty || "normal";
 
   const isNewHighScore = score > highScores[difficulty];
 
   useEffect(() => {
     loadHighScores();
   }, []);
+
+  const handleSubmitScore = async () => {
+    if (!username) {
+      if (Platform.OS === "web") {
+        alert("ユーザー名を設定してください");
+      } else {
+        Alert.alert("エラー", "ユーザー名を設定してください");
+      }
+      router.push("/");
+      return;
+    }
+
+    if (!lastGameResult) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await submitScoreMutation.mutateAsync({
+        username,
+        score,
+        difficulty,
+        perfect,
+        good,
+        miss,
+        maxCombo,
+      });
+
+      setHasSubmitted(true);
+
+      if (Platform.OS === "web") {
+        alert("スコアを送信しました！");
+      } else {
+        Alert.alert("成功", "スコアを送信しました！");
+      }
+    } catch (error) {
+      console.error("Failed to submit score:", error);
+      if (Platform.OS === "web") {
+        alert("スコアの送信に失敗しました");
+      } else {
+        Alert.alert("エラー", "スコアの送信に失敗しました");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <ScreenContainer className="bg-black p-6">
@@ -31,9 +84,8 @@ export default function ResultScreen() {
           <Text className="text-white text-4xl font-bold">RESULT</Text>
           <Text className="text-gray-400 text-lg capitalize">{difficulty}</Text>
         </View>
-
         {/* スコア */}
-        <View className="items-center gap-4 bg-surface rounded-2xl p-8 w-full max-w-sm">
+        <View className="items-center gap-4 bg-gray-900 rounded-2xl p-8 w-full max-w-sm border-2 border-primary">
           {isNewHighScore && (
             <View className="bg-yellow-500 px-4 py-2 rounded-full mb-2">
               <Text className="text-black font-bold text-sm">NEW HIGH SCORE!</Text>
@@ -41,8 +93,8 @@ export default function ResultScreen() {
           )}
 
           <View className="items-center">
-            <Text className="text-gray-400 text-sm">Score</Text>
-            <Text className="text-white text-5xl font-bold">{score}</Text>
+            <Text className="text-gray-300 text-sm">Score</Text>
+            <Text className="text-primary text-5xl font-bold">{score}</Text>
           </View>
 
           <View className="w-full h-px bg-border my-2" />
@@ -65,14 +117,42 @@ export default function ResultScreen() {
             <View className="w-full h-px bg-border my-2" />
 
             <View className="flex-row justify-between items-center">
-              <Text className="text-gray-400 text-lg">Max Combo</Text>
-              <Text className="text-white text-xl font-bold">{maxCombo}</Text>
+              <Text className="text-gray-300 text-lg">Max Combo</Text>
+              <Text className="text-primary text-xl font-bold">{maxCombo}</Text>
             </View>
           </View>
         </View>
 
         {/* ボタン */}
         <View className="gap-4 w-full max-w-sm">
+          {/* スコア送信ボタン */}
+          {!hasSubmitted && (
+            <TouchableOpacity
+              onPress={handleSubmitScore}
+              disabled={isSubmitting}
+              className="bg-yellow-500 py-4 rounded-full active:opacity-80"
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text className="text-black text-center font-bold text-lg">
+                  ランキングに送信
+                </Text>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {hasSubmitted && (
+            <TouchableOpacity
+              onPress={() => router.push("/leaderboard")}
+              className="bg-yellow-500 py-4 rounded-full active:opacity-80"
+            >
+              <Text className="text-black text-center font-bold text-lg">
+                ランキングを見る
+              </Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             onPress={() => router.back()}
             className="bg-primary py-4 rounded-full active:opacity-80"
@@ -82,9 +162,9 @@ export default function ResultScreen() {
 
           <TouchableOpacity
             onPress={() => router.push("/")}
-            className="bg-surface py-4 rounded-full active:opacity-80"
+            className="bg-gray-800 border-2 border-primary py-4 rounded-full active:opacity-80"
           >
-            <Text className="text-white text-center font-bold text-lg">MENU</Text>
+            <Text className="text-primary text-center font-bold text-lg">MENU</Text>
           </TouchableOpacity>
         </View>
 

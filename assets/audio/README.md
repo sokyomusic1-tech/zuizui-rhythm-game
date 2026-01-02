@@ -2,7 +2,7 @@
 
 ## Current Audio File
 
-The current `zuizui_song.mp3` file is a **silent placeholder** (no sound) generated for development purposes. This allows the app to run without errors, but you won't hear any music.
+The current `zuizui_song.mp3` file contains the **actual music** - "Zuizui Song Japanese-style Rock (Female Vocal)". The file has been converted from WAV to MP3 format (192kbps) to reduce file size from 35MB to approximately 4.8MB.
 
 ## Required Audio File
 

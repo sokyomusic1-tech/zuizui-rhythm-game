@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, scores, InsertScore } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,59 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * スコアをデータベースに保存
+ */
+export async function createScore(data: InsertScore) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.insert(scores).values(data);
+  return true;
+}
+
+/**
+ * 難易度別のトップ100ランキングを取得
+ */
+export async function getLeaderboard(difficulty: "easy" | "normal" | "hard", limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select()
+    .from(scores)
+    .where(eq(scores.difficulty, difficulty))
+    .orderBy(desc(scores.score))
+    .limit(limit);
+}
+
+/**
+ * 全難易度のトップ100ランキングを取得
+ */
+export async function getAllLeaderboards(limit = 100) {
+  const db = await getDb();
+  if (!db) return { easy: [], normal: [], hard: [] };
+
+  const [easy, normal, hard] = await Promise.all([
+    db
+      .select()
+      .from(scores)
+      .where(eq(scores.difficulty, "easy"))
+      .orderBy(desc(scores.score))
+      .limit(limit),
+    db
+      .select()
+      .from(scores)
+      .where(eq(scores.difficulty, "normal"))
+      .orderBy(desc(scores.score))
+      .limit(limit),
+    db
+      .select()
+      .from(scores)
+      .where(eq(scores.difficulty, "hard"))
+      .orderBy(desc(scores.score))
+      .limit(limit),
+  ]);
+
+  return { easy, normal, hard };
+}

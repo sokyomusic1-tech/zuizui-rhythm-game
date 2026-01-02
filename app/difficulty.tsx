@@ -58,22 +58,22 @@ export default function DifficultyScreen() {
             <TouchableOpacity
               key={diff.id}
               onPress={() => handleSelectDifficulty(diff.id)}
-              className="bg-surface rounded-2xl p-6 active:opacity-80"
+              className="bg-gray-900 border-2 border-primary rounded-2xl p-6 active:opacity-80"
             >
               <View className="flex-row items-center justify-between mb-3">
                 <View className={`${diff.color} px-4 py-2 rounded-full`}>
                   <Text className="text-white font-bold text-lg">{diff.name}</Text>
                 </View>
                 <View className="items-end">
-                  <Text className="text-gray-400 text-sm">High Score</Text>
+                  <Text className="text-gray-300 text-sm">High Score</Text>
                   <Text className="text-white text-2xl font-bold">{highScores[diff.id]}</Text>
                 </View>
               </View>
 
-              <Text className="text-gray-400 text-base mb-2">{diff.description}</Text>
+              <Text className="text-gray-300 text-base mb-2">{diff.description}</Text>
 
               <View className="flex-row items-center gap-2">
-                <Text className="text-gray-500 text-sm">ノーツ数:</Text>
+                <Text className="text-gray-400 text-sm">ノーツ数:</Text>
                 <Text className="text-white text-sm font-semibold">{NOTES_COUNT[diff.id]}</Text>
               </View>
             </TouchableOpacity>

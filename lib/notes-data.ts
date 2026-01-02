@@ -3,8 +3,8 @@ import { Note, Difficulty } from "./game-context";
 // 曲の長さ: 3分26秒 = 206秒
 const SONG_DURATION = 206;
 
-// BPMを仮定（和風ロックなので中程度のテンポ）
-const BPM = 140;
+// BPM 164（ユーザー提供の正確なBPM）
+const BPM = 164;
 const BEAT_INTERVAL = 60 / BPM; // 1拍の秒数
 
 /**
