@@ -11,7 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/screen-container";
 import { useGame, type GameScore, type JudgementResult } from "@/lib/game-context";
-import { NOTES_DATA } from "@/lib/notes-data";
+import { NOTES_DATA, generateNotes } from "@/lib/notes-data";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 const NOTE_FALL_DURATION = 2000; // ノーツが落ちる時間（ミリ秒）
@@ -23,7 +23,7 @@ const NOTE_SIZE = 60;
 
 export default function GameScreen() {
   const router = useRouter();
-  const { currentDifficulty, saveHighScore, setLastGameResult } = useGame();
+  const { currentDifficulty, saveHighScore, setLastGameResult, selectedSong } = useGame();
   const [gameStarted, setGameStarted] = useState(false);
   const [gameTime, setGameTime] = useState(0);
   const [score, setScore] = useState(0);
@@ -38,9 +38,14 @@ export default function GameScreen() {
   const processedNotesRef = useRef(new Set<string>());
   const gameEndCalledRef = useRef(false);
 
-  const player = useAudioPlayer(require("@/assets/audio/zuizui_song.mp3"));
+  const player = useAudioPlayer(selectedSong?.audioFile || require("@/assets/audio/zuizui_song.mp3"));
 
-  const notes = currentDifficulty ? NOTES_DATA[currentDifficulty] : [];
+  // 選択された曲のBPMに基づいてノーツを生成
+  const notes = currentDifficulty && selectedSong
+    ? generateNotes(currentDifficulty, selectedSong.bpm)
+    : currentDifficulty
+    ? NOTES_DATA[currentDifficulty]
+    : [];
 
   // ゲーム終了処理（useCallbackで最新の値を参照）
   const handleGameEnd = useCallback(async () => {

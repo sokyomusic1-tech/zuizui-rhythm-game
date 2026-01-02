@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { SongData } from "./song-data";
 
 export type Difficulty = "easy" | "normal" | "hard";
 
@@ -40,6 +41,8 @@ interface GameContextType {
   username: string | null;
   setUsername: (name: string) => Promise<void>;
   loadUsername: () => Promise<void>;
+  selectedSong: SongData | null;
+  setSelectedSong: (song: SongData | null) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -56,6 +59,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [currentDifficulty, setCurrentDifficulty] = useState<Difficulty | null>(null);
   const [lastGameResult, setLastGameResult] = useState<GameScore | null>(null);
   const [username, setUsernameState] = useState<string | null>(null);
+  const [selectedSong, setSelectedSong] = useState<SongData | null>(null);
 
   const loadHighScores = useCallback(async () => {
     try {
@@ -117,6 +121,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         username,
         setUsername,
         loadUsername,
+        selectedSong,
+        setSelectedSong,
       }}
     >
       {children}

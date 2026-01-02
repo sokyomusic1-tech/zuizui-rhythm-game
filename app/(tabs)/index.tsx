@@ -82,7 +82,7 @@ export default function HomeScreen() {
           {/* ボタン */}
           <View className="items-center gap-4">
             <TouchableOpacity
-              onPress={() => router.push("/difficulty")}
+              onPress={() => router.push("/song-select")}
               className="bg-primary px-12 py-5 rounded-full active:opacity-80"
             >
               <Text className="text-white font-bold text-2xl">PLAY</Text>

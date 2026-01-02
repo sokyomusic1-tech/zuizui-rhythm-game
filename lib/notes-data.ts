@@ -3,16 +3,15 @@ import { Note, Difficulty } from "./game-context";
 // 曲の長さ: 3分26秒 = 206秒
 const SONG_DURATION = 206;
 
-// BPM 164（ユーザー提供の正確なBPM）
-const BPM = 164;
-const BEAT_INTERVAL = 60 / BPM; // 1拍の秒数
-
 /**
  * 難易度に応じたノーツデータを生成
+ * @param difficulty 難易度
+ * @param bpm 曲のBPM
  */
-function generateNotes(difficulty: Difficulty): Note[] {
+export function generateNotes(difficulty: Difficulty, bpm: number): Note[] {
   const notes: Note[] = [];
   let noteId = 0;
+  const BEAT_INTERVAL = 60 / bpm; // 1拍の秒数
 
   // 難易度別の設定
   const config = {
@@ -64,11 +63,14 @@ function generateNotes(difficulty: Difficulty): Note[] {
   return notes;
 }
 
-// 各難易度のノーツデータを事前生成
+// デフォルトBPM（後方互換性のため）
+const DEFAULT_BPM = 82;
+
+// 各難易度のノーツデータを事前生成（デフォルトBPM）
 export const NOTES_DATA: Record<Difficulty, Note[]> = {
-  easy: generateNotes("easy"),
-  normal: generateNotes("normal"),
-  hard: generateNotes("hard"),
+  easy: generateNotes("easy", DEFAULT_BPM),
+  normal: generateNotes("normal", DEFAULT_BPM),
+  hard: generateNotes("hard", DEFAULT_BPM),
 };
 
 // ノーツ数の情報
