@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
   withSequence,
 } from "react-native-reanimated";
+import { memo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useGame, type GameScore, type JudgementResult } from "@/lib/game-context";
 import { NOTES_DATA, generateNotes } from "@/lib/notes-data";
@@ -308,6 +309,7 @@ export default function GameScreen() {
                     <View
                       key={note.id}
                       className="absolute bg-primary rounded-full"
+                      pointerEvents="none"
                       style={{
                         width: NOTE_SIZE,
                         height: NOTE_SIZE,

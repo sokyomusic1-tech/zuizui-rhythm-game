@@ -68,7 +68,8 @@ export default function SongSelectScreen() {
                   <Image
                     source={song.coverImage}
                     style={{ width: "100%", aspectRatio: 1 }}
-                    contentFit="cover"
+                    contentFit="contain"
+                    contentPosition="center"
                   />
 
                   {/* 曲情報 */}
