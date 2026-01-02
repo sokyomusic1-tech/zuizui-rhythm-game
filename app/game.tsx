@@ -364,6 +364,20 @@ export default function GameScreen() {
           </View>
         )}
 
+        {/* プログレスバー */}
+        {gameStarted && songDuration && (
+          <View className="absolute top-4 left-0 right-0 px-6 z-10">
+            <View className="h-1 bg-gray-800 rounded-full overflow-hidden">
+              <View
+                className="h-full bg-primary rounded-full"
+                style={{
+                  width: `${Math.min((gameTime / songDuration) * 100, 100)}%`,
+                }}
+              />
+            </View>
+          </View>
+        )}
+
         {/* スコア表示 */}
         <View className="absolute top-12 left-0 right-0 flex-row justify-between px-6 z-10">
           <View>
