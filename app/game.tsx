@@ -54,6 +54,7 @@ export default function GameScreen() {
   const [judgementDisplay, setJudgementDisplay] = useState<JudgementResult | null>(null);
   const [tapEffects, setTapEffects] = useState<{ [key: number]: boolean }>({});
   const [perfectEffects, setPerfectEffects] = useState<{ [key: string]: { lane: number; position: number } }>({});
+  const [songDuration, setSongDuration] = useState<number | null>(null);
   const gameTimeRef = useRef(0);
   const processedNotesRef = useRef(new Set<string>());
   const gameEndCalledRef = useRef(false);
@@ -143,6 +144,18 @@ export default function GameScreen() {
     setAudioModeAsync({ playsInSilentMode: true });
   }, []);
 
+  // 曲の長さを取得
+  useEffect(() => {
+    const checkDuration = setInterval(() => {
+      if (player.duration && player.duration > 0) {
+        setSongDuration(player.duration * 1000); // 秒をミリ秒に変換
+        clearInterval(checkDuration);
+      }
+    }, 100);
+
+    return () => clearInterval(checkDuration);
+  }, [player]);
+
   // カウントダウン
   useEffect(() => {
     if (countdown > 0) {
@@ -158,14 +171,14 @@ export default function GameScreen() {
 
   // ゲームタイマー
   useEffect(() => {
-    if (!gameStarted) return;
+    if (!gameStarted || !songDuration) return;
 
     intervalRef.current = setInterval(() => {
       gameTimeRef.current += 16;
       setGameTime(gameTimeRef.current);
 
-      // ゲーム終了チェック（曲の長さ + 3秒）
-      if (gameTimeRef.current > 211000 && !gameEndCalledRef.current) {
+      // ゲーム終了チェック（曲の長さ + 2秒）
+      if (gameTimeRef.current > songDuration + 2000 && !gameEndCalledRef.current) {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
@@ -180,16 +193,18 @@ export default function GameScreen() {
         intervalRef.current = null;
       }
     };
-  }, [gameStarted, handleGameEnd]);
+  }, [gameStarted, songDuration, handleGameEnd]);
 
-  // アク  // ノーツの更新
+  // ノーツの更新
   useEffect(() => {
-    if (!gameStarted || gameEndCalledRef.current) return;
+    if (!gameStarted || gameEndCalledRef.current || !songDuration) return;
 
     const currentTime = gameTime;
     const upcomingNotes = notes.filter((note) => {
       const noteTime = note.time * 1000;
       const timeDiff = noteTime - currentTime;
+      // 曲の長さを超えるノーツは生成しない
+      if (noteTime > songDuration) return false;
       return timeDiff >= 0 && timeDiff <= NOTE_FALL_DURATION && !processedNotesRef.current.has(note.id);
     });
 
