@@ -7,8 +7,9 @@ const SONG_DURATION = 206;
  * 難易度に応じたノーツデータを生成
  * @param difficulty 難易度
  * @param bpm 曲のBPM
+ * @param songDuration 曲の長さ（秒）
  */
-export function generateNotes(difficulty: Difficulty, bpm: number): Note[] {
+export function generateNotes(difficulty: Difficulty, bpm: number, songDuration?: number): Note[] {
   const notes: Note[] = [];
   let noteId = 0;
   const BEAT_INTERVAL = 60 / bpm; // 1拍の秒数
@@ -31,11 +32,14 @@ export function generateNotes(difficulty: Difficulty, bpm: number): Note[] {
 
   const { noteInterval, laneVariety } = config[difficulty];
 
+  // 実際の曲の長さを使用（指定がない場合はデフォルト値）
+  const duration = songDuration || SONG_DURATION;
+
   // イントロ（最初の8秒はノーツなし）
   let currentTime = 8;
 
   // メインパート
-  while (currentTime < SONG_DURATION - 10) {
+  while (currentTime < duration - 10) {
     // 最後の10秒前まで
     const lane = Math.floor(Math.random() * laneVariety) as 0 | 1 | 2 | 3;
     notes.push({
@@ -50,7 +54,7 @@ export function generateNotes(difficulty: Difficulty, bpm: number): Note[] {
   }
 
   // アウトロ（最後の10秒は徐々に減らす）
-  while (currentTime < SONG_DURATION - 2) {
+  while (currentTime < duration - 2) {
     const lane = Math.floor(Math.random() * laneVariety) as 0 | 1 | 2 | 3;
     notes.push({
       id: `note_${noteId++}`,

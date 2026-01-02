@@ -7,7 +7,7 @@ import { NOTES_COUNT } from "@/lib/notes-data";
 
 export default function DifficultyScreen() {
   const router = useRouter();
-  const { highScores, loadHighScores, setCurrentDifficulty } = useGame();
+  const { highScores, loadHighScores, setCurrentDifficulty, selectedSong } = useGame();
 
   useEffect(() => {
     loadHighScores();
@@ -51,6 +51,13 @@ export default function DifficultyScreen() {
           {/* タイトル */}
           <View className="items-center mb-4">
             <Text className="text-white text-3xl font-bold">難易度を選択</Text>
+            {selectedSong && (
+              <View className="flex-row items-center gap-2 mt-2">
+                <Text className="text-gray-400 text-sm">{selectedSong.title}</Text>
+                <Text className="text-gray-400 text-sm">•</Text>
+                <Text className="text-primary text-sm font-bold">{selectedSong.durationDisplay}</Text>
+              </View>
+            )}
           </View>
 
           {/* 難易度カード */}

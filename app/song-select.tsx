@@ -82,7 +82,11 @@ export default function SongSelectScreen() {
                     >
                       {song.title}
                     </Text>
-                    <Text className="text-gray-400 text-sm">BPM: {song.bpm}</Text>
+                    <View className="flex-row gap-3">
+                      <Text className="text-gray-400 text-sm">BPM: {song.bpm}</Text>
+                      <Text className="text-gray-400 text-sm">•</Text>
+                      <Text className="text-gray-400 text-sm">{song.durationDisplay}</Text>
+                    </View>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -96,7 +100,11 @@ export default function SongSelectScreen() {
           <Text className="text-white text-2xl font-bold mb-1">
             {songs[selectedIndex].title}
           </Text>
-          <Text className="text-primary text-lg">BPM: {songs[selectedIndex].bpm}</Text>
+          <View className="flex-row gap-4">
+            <Text className="text-primary text-lg">BPM: {songs[selectedIndex].bpm}</Text>
+            <Text className="text-gray-400 text-lg">•</Text>
+            <Text className="text-primary text-lg">{songs[selectedIndex].durationDisplay}</Text>
+          </View>
         </View>
 
         {/* ボタン */}

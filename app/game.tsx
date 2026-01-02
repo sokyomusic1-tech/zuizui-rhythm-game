@@ -62,10 +62,10 @@ export default function GameScreen() {
 
   const player = useAudioPlayer(selectedSong?.audioFile || require("@/assets/audio/zuizui_song.mp3"));
 
-  // 選択された曲のBPMに基づいてノーツを生成
+  // 選択された曲のBPMと長さに基づいてノーツを生成
   const notes = useMemo(() => {
     return currentDifficulty && selectedSong
-      ? generateNotes(currentDifficulty, selectedSong.bpm)
+      ? generateNotes(currentDifficulty, selectedSong.bpm, selectedSong.duration)
       : currentDifficulty
       ? NOTES_DATA[currentDifficulty]
       : [];
