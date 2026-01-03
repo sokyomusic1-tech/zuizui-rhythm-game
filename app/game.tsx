@@ -53,7 +53,8 @@ export default function GameScreen() {
   const [activeNotes, setActiveNotes] = useState<string[]>([]);
   const [judgementDisplay, setJudgementDisplay] = useState<JudgementResult | null>(null);
   const [tapEffects, setTapEffects] = useState<{ [key: number]: boolean }>({});
-  const [perfectEffects, setPerfectEffects] = useState<{ [key: string]: { lane: number; position: number } }>({});
+  const [perfectEffects, setPerfectEffects] = useState<{ [key: number]: { show: boolean; y: number } }>({});
+  const tapSound = useAudioPlayer(require("@/assets/sounds/tap.wav"));
   const [songDuration, setSongDuration] = useState<number | null>(null);
   const gameTimeRef = useRef(0);
   const processedNotesRef = useRef(new Set<string>());
@@ -244,6 +245,10 @@ export default function GameScreen() {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+
+    // タップ効果音を再生
+    tapSound.seekTo(0);
+    tapSound.play();
 
     console.log(`Tap on lane ${lane}, gameTime: ${gameTime}, activeNotes:`, activeNotes.length);
 
