@@ -4,7 +4,7 @@ export interface SongData {
   bpm: number;
   duration: number; // 秒単位
   durationDisplay: string; // 表示用（例: "3:27"）
-  coverImage: any;
+  coverImage: string | any; // URLまたはrequire()
   audioFile: any;
 }
 
@@ -15,7 +15,7 @@ export const songs: SongData[] = [
     bpm: 82,
     duration: 207, // 3分27秒
     durationDisplay: "3:27",
-    coverImage: require("@/assets/images/icon.png"),
+    coverImage: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663153379247/GMBDvynjmzCBuCAN.png",
     audioFile: require("@/assets/audio/zuizui_song.mp3"),
   },
   {
@@ -24,7 +24,7 @@ export const songs: SongData[] = [
     bpm: 76,
     duration: 229, // 3分49秒
     durationDisplay: "3:49",
-    coverImage: require("@/assets/images/songs/zuizui_anime.jpg"),
+    coverImage: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663153379247/JgoFIxUcZwkRVBdo.jpg",
     audioFile: require("@/assets/audio/zuizui_anime.mp3"),
   },
   {
@@ -33,7 +33,7 @@ export const songs: SongData[] = [
     bpm: 81.6,
     duration: 233, // 3分53秒
     durationDisplay: "3:53",
-    coverImage: require("@/assets/images/songs/moechakka_fire.jpg"),
+    coverImage: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663153379247/KGYPiUjtNkQhjWmP.jpg",
     audioFile: require("@/assets/audio/moechakka_fire.mp3"),
   },
 ];
