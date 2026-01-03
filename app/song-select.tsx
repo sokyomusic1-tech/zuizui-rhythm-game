@@ -77,12 +77,14 @@ export default function SongSelectScreen() {
                   }`}
                 >
                   {/* カバー画像 */}
-                  <Image
-                    source={song.coverImage}
-                    style={{ width: "100%", aspectRatio: 1 }}
-                    contentFit="contain"
-                    contentPosition="center"
-                  />
+                  <View className="bg-gray-800">
+                    <Image
+                      source={song.coverImage}
+                      style={{ width: "100%", aspectRatio: 1 }}
+                      contentFit="cover"
+                      contentPosition="center"
+                    />
+                  </View>
 
                   {/* 曲情報 */}
                   <View className="bg-gray-900 p-4">
