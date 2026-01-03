@@ -1,10 +1,10 @@
-import { View, Text, TouchableOpacity, ScrollView, Dimensions } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Dimensions, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { ScreenContainer } from "@/components/screen-container";
 import { useGame } from "@/lib/game-context";
 import { songs } from "@/lib/song-data";
-import { useState } from "react";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
@@ -23,6 +23,18 @@ export default function SongSelectScreen() {
     setSelectedSong(songs[selectedIndex]);
     router.push("/difficulty");
   };
+
+  // AdSenseの初期化
+  useEffect(() => {
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      try {
+        // @ts-ignore
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (error) {
+        console.error("AdSense error:", error);
+      }
+    }
+  }, []);
 
   return (
     <ScreenContainer className="bg-black p-6">
@@ -106,6 +118,20 @@ export default function SongSelectScreen() {
             <Text className="text-primary text-lg">{songs[selectedIndex].durationDisplay}</Text>
           </View>
         </View>
+
+        {/* Google AdSense 広告 */}
+        {Platform.OS === "web" && (
+          <View className="mb-6 w-full max-w-sm self-center">
+            <ins
+              className="adsbygoogle"
+              style={{ display: "block" }}
+              data-ad-client="ca-pub-2991936078376292"
+              data-ad-slot="5726193644"
+              data-ad-format="auto"
+              data-full-width-responsive="true"
+            />
+          </View>
+        )}
 
         {/* ボタン */}
         <View className="gap-4">
