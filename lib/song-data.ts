@@ -15,7 +15,7 @@ export const songs: SongData[] = [
     bpm: 82,
     duration: 207, // 3分27秒
     durationDisplay: "3:27",
-    coverImage: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663153379247/GMBDvynjmzCBuCAN.png",
+    coverImage: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663153379247/TxPbLVQBPuXQYZMH.jpg",
     audioFile: require("@/assets/audio/zuizui_song.mp3"),
   },
   {
