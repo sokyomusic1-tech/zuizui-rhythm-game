@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-na
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useGame } from "@/lib/game-context";
-import { GoogleAdSense } from "@/components/google-adsense";
 import { trpc } from "@/lib/trpc";
 import { Platform } from "react-native";
 
@@ -27,6 +26,18 @@ export default function ResultScreen() {
 
   useEffect(() => {
     loadHighScores();
+  }, []);
+
+  // AdSenseの初期化
+  useEffect(() => {
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      try {
+        // @ts-ignore
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (error) {
+        console.error("AdSense error:", error);
+      }
+    }
   }, []);
 
   const handleSubmitScore = async () => {
@@ -64,12 +75,13 @@ export default function ResultScreen() {
       } else {
         Alert.alert("成功", "スコアを送信しました！");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to submit score:", error);
+      const errorMessage = error?.message || "スコアの送信に失敗しました";
       if (Platform.OS === "web") {
-        alert("スコアの送信に失敗しました");
+        alert(`エラー: ${errorMessage}`);
       } else {
-        Alert.alert("エラー", "スコアの送信に失敗しました");
+        Alert.alert("エラー", errorMessage);
       }
     } finally {
       setIsSubmitting(false);
@@ -169,9 +181,18 @@ export default function ResultScreen() {
         </View>
 
         {/* Google AdSense 広告 */}
-        <View className="mt-8 w-full max-w-sm self-center">
-          <GoogleAdSense client="ca-pub-2991936078376292" slot="5726193644" />
-        </View>
+        {Platform.OS === "web" && (
+          <View className="mt-8 w-full max-w-sm self-center">
+            <ins
+              className="adsbygoogle"
+              style={{ display: "block" }}
+              data-ad-client="ca-pub-2991936078376292"
+              data-ad-slot="5726193644"
+              data-ad-format="auto"
+              data-full-width-responsive="true"
+            />
+          </View>
+        )}
       </View>
     </ScreenContainer>
   );
