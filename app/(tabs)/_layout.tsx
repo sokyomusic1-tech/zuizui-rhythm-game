@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Platform } from "react-native";
+import { Platform, Text } from "react-native";
 import { useColors } from "@/hooks/use-colors";
 
 export default function TabLayout() {
@@ -32,7 +32,14 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: () => <Text style={{ fontSize: 24 }}>🏠</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="request"
+        options={{
+          title: "楽曲リクエスト投票",
+          tabBarIcon: () => <Text style={{ fontSize: 24 }}>🎵</Text>,
         }}
       />
     </Tabs>
