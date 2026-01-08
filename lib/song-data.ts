@@ -45,8 +45,8 @@ export const songs: SongData[] = [
     id: "zuizui_anime",
     title: "ズイズイソング2025 アニメソング風",
     bpm: 76,
-    duration: 130, // 2分10秒（実際の再生時間）
-    durationDisplay: "2:10",
+    duration: 90, // 1分30秒
+    durationDisplay: "1:30",
     coverImage: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663153379247/JgoFIxUcZwkRVBdo.jpg",
     audioFile: require("@/assets/audio/zuizui_anime.mp3"),
     backgroundImage: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663153379247/JgoFIxUcZwkRVBdo.jpg", // 同じ画像を使用
