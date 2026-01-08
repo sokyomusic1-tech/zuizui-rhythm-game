@@ -113,6 +113,16 @@ export default function SongSelectScreen() {
 
         {/* ボタン */}
         <View className="gap-4">
+          {/* ランキングボタン */}
+          <TouchableOpacity
+            onPress={() => router.push(`/song-ranking?songId=${songs[selectedIndex].id}` as any)}
+            className="bg-gray-800 px-8 py-3 rounded-full active:opacity-80 border-2 border-primary"
+          >
+            <Text className="text-primary font-bold text-lg text-center">
+              🏆 ランキングを見る
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={handleConfirm}
             className="bg-primary px-8 py-4 rounded-full active:opacity-80"

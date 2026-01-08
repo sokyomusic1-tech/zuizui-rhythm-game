@@ -27,6 +27,7 @@ export const appRouter = router({
         z.object({
           username: z.string().min(1).max(50),
           score: z.number().int().min(0),
+          songId: z.string().min(1).max(50),
           difficulty: z.enum(["easy", "normal", "hard"]),
           perfect: z.number().int().min(0),
           good: z.number().int().min(0),
@@ -60,6 +61,31 @@ export const appRouter = router({
       )
       .query(async ({ input }) => {
         return db.getAllLeaderboards(input.limit);
+      }),
+
+    // 曲ごとのランキングを取得
+    getBySong: publicProcedure
+      .input(
+        z.object({
+          songId: z.string().min(1).max(50),
+          difficulty: z.enum(["easy", "normal", "hard"]).optional(),
+          limit: z.number().int().min(1).max(100).optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return db.getLeaderboardBySong(input.songId, input.difficulty, input.limit);
+      }),
+
+    // 曲ごとの最高得点を取得（過去最高と今月最高）
+    getTopScoresBySong: publicProcedure
+      .input(
+        z.object({
+          songId: z.string().min(1).max(50),
+          difficulty: z.enum(["easy", "normal", "hard"]),
+        })
+      )
+      .query(async ({ input }) => {
+        return db.getTopScoresBySong(input.songId, input.difficulty);
       }),
   }),
 });

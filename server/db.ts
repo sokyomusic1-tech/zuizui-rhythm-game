@@ -1,5 +1,6 @@
-import { desc, eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { desc, eq, and, gte, sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { InsertUser, users, scores, InsertScore } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -9,7 +10,8 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const client = postgres(process.env.DATABASE_URL);
+      _db = drizzle(client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -68,7 +70,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -144,4 +147,69 @@ export async function getAllLeaderboards(limit = 100) {
   ]);
 
   return { easy, normal, hard };
+}
+
+/**
+ * 曲ごとのランキングを取得
+ */
+export async function getLeaderboardBySong(
+  songId: string,
+  difficulty?: "easy" | "normal" | "hard",
+  limit = 100
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [eq(scores.songId, songId)];
+  if (difficulty) {
+    conditions.push(eq(scores.difficulty, difficulty));
+  }
+
+  return db
+    .select()
+    .from(scores)
+    .where(and(...conditions))
+    .orderBy(desc(scores.score))
+    .limit(limit);
+}
+
+/**
+ * 曲ごとの最高得点を取得（過去最高と今月最高）
+ */
+export async function getTopScoresBySong(
+  songId: string,
+  difficulty: "easy" | "normal" | "hard"
+) {
+  const db = await getDb();
+  if (!db) return { allTime: null, thisMonth: null };
+
+  // 過去最高得点
+  const allTimeResult = await db
+    .select()
+    .from(scores)
+    .where(and(eq(scores.songId, songId), eq(scores.difficulty, difficulty)))
+    .orderBy(desc(scores.score))
+    .limit(1);
+
+  // 今月の最高得点
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  
+  const thisMonthResult = await db
+    .select()
+    .from(scores)
+    .where(
+      and(
+        eq(scores.songId, songId),
+        eq(scores.difficulty, difficulty),
+        gte(scores.createdAt, firstDayOfMonth)
+      )
+    )
+    .orderBy(desc(scores.score))
+    .limit(1);
+
+  return {
+    allTime: allTimeResult[0] || null,
+    thisMonth: thisMonthResult[0] || null,
+  };
 }

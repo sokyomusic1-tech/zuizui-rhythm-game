@@ -8,7 +8,7 @@ import { Platform } from "react-native";
 
 export default function ResultScreen() {
   const router = useRouter();
-  const { highScores, loadHighScores, lastGameResult, username } = useGame();
+  const { highScores, loadHighScores, lastGameResult, username, addPendingScore, selectedSong } = useGame();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   
@@ -23,6 +23,8 @@ export default function ResultScreen() {
   const difficulty = lastGameResult?.difficulty || "normal";
 
   const isNewHighScore = score > highScores[difficulty];
+  const isFullCombo = miss === 0;
+  const isAllPerfect = miss === 0 && good === 0;
 
   useEffect(() => {
     loadHighScores();
@@ -61,6 +63,7 @@ export default function ResultScreen() {
       await submitScoreMutation.mutateAsync({
         username,
         score,
+        songId: selectedSong?.id || "zuizui_song",
         difficulty,
         perfect,
         good,
@@ -77,7 +80,19 @@ export default function ResultScreen() {
       }
     } catch (error: any) {
       console.error("Failed to submit score:", error);
-      const errorMessage = error?.message || "スコアの送信に失敗しました";
+      let errorMessage = error?.message || "スコアの送信に失敗しました";
+      
+      // Save score offline if network error
+      const isNetworkError = errorMessage.includes("fetch") || errorMessage.includes("timeout") || errorMessage.includes("aborted") || errorMessage.includes("network");
+      
+      if (isNetworkError && lastGameResult) {
+        // Save score to local storage for later submission
+        await addPendingScore(lastGameResult);
+        errorMessage = "ネットワークエラー。スコアをローカルに保存しました。次回オンライン時に自動送信します。";
+      } else if (errorMessage.includes("fetch") || errorMessage.includes("timeout") || errorMessage.includes("aborted")) {
+        errorMessage = "サーバーが起動中です。もう一度お試しください（初回は1分ほどかかる場合があります）";
+      }
+      
       if (Platform.OS === "web") {
         alert(`エラー: ${errorMessage}`);
       } else {
@@ -101,6 +116,16 @@ export default function ResultScreen() {
           {isNewHighScore && (
             <View className="bg-yellow-500 px-4 py-2 rounded-full mb-2">
               <Text className="text-black font-bold text-sm">NEW HIGH SCORE!</Text>
+            </View>
+          )}
+          {isAllPerfect && (
+            <View className="bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-2 rounded-full mb-2">
+              <Text className="text-black font-bold text-sm">✨ ALL PERFECT! ✨</Text>
+            </View>
+          )}
+          {!isAllPerfect && isFullCombo && (
+            <View className="bg-green-500 px-4 py-2 rounded-full mb-2">
+              <Text className="text-white font-bold text-sm">🎉 FULL COMBO! 🎉</Text>
             </View>
           )}
 

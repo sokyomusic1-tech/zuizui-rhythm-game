@@ -21,12 +21,15 @@ import { useEffect, useState } from "react";
  */
 export default function HomeScreen() {
   const router = useRouter();
-  const { highScores, loadHighScores, username, setUsername, loadUsername } = useGame();
+  const { highScores, loadHighScores, username, setUsername, loadUsername, pendingScores, loadPendingScores, removePendingScore, loadNoteSpeed } = useGame();
   const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [isSyncingScores, setIsSyncingScores] = useState(false);
 
   useEffect(() => {
     loadHighScores();
     loadUsername();
+    loadPendingScores();
+    loadNoteSpeed();
   }, []);
 
   useEffect(() => {
@@ -43,6 +46,49 @@ export default function HomeScreen() {
     await setUsername(name);
     setShowUsernameModal(false);
   };
+
+  // Auto-submit pending scores when online
+  useEffect(() => {
+    const submitPendingScores = async () => {
+      if (pendingScores.length === 0 || isSyncingScores) return;
+      
+      setIsSyncingScores(true);
+      
+      for (const pendingScore of pendingScores) {
+        try {
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || ''}/api/trpc/leaderboard.submitScore`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              username: pendingScore.username,
+              score: pendingScore.score,
+              difficulty: pendingScore.difficulty,
+              perfect: pendingScore.perfect,
+              good: pendingScore.good,
+              miss: pendingScore.miss,
+              maxCombo: pendingScore.maxCombo,
+            }),
+          });
+          
+          if (response.ok) {
+            // Remove successfully submitted score
+            await removePendingScore(pendingScore.timestamp);
+            console.log('Successfully submitted pending score:', pendingScore.timestamp);
+          }
+        } catch (error) {
+          console.error('Failed to submit pending score:', error);
+          // Stop trying if network is still down
+          break;
+        }
+      }
+      
+      setIsSyncingScores(false);
+    };
+    
+    submitPendingScores();
+  }, [pendingScores, isSyncingScores]);
 
   return (
     <ScreenContainer className="bg-black p-6">
@@ -94,6 +140,13 @@ export default function HomeScreen() {
             >
               <Text className="text-primary font-bold text-xl">ランキング</Text>
             </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => router.push("/settings")}
+              className="bg-gray-800 px-10 py-4 rounded-full active:opacity-80 border-2 border-gray-600"
+            >
+              <Text className="text-gray-400 font-bold text-xl">設定</Text>
+            </TouchableOpacity>
           </View>
 
           {/* ユーザー名表示 */}
@@ -107,6 +160,22 @@ export default function HomeScreen() {
               >
                 <Text className="text-primary text-sm">変更</Text>
               </TouchableOpacity>
+            </View>
+          )}
+
+          {/* ペンディングスコア表示 */}
+          {pendingScores.length > 0 && (
+            <View className="items-center">
+              <View className="bg-yellow-900 border-2 border-yellow-600 rounded-lg px-4 py-3">
+                <Text className="text-yellow-400 text-sm text-center">
+                  {isSyncingScores ? '送信中...' : `未送信スコア: ${pendingScores.length}件`}
+                </Text>
+                {!isSyncingScores && (
+                  <Text className="text-yellow-300 text-xs text-center mt-1">
+                    オンライン時に自動送信します
+                  </Text>
+                )}
+              </View>
             </View>
           )}
 

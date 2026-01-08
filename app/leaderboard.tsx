@@ -13,28 +13,36 @@ export default function LeaderboardScreen() {
   const [selectedTab, setSelectedTab] = useState<DifficultyTab>("all");
 
   // 全難易度のランキングを取得
-  const { data: allData, isLoading: isLoadingAll } = trpc.leaderboard.getAll.useQuery(
+  const { data: allData, isLoading: isLoadingAll, error: errorAll, refetch: refetchAll } = trpc.leaderboard.getAll.useQuery(
     { limit: 100 },
-    { enabled: selectedTab === "all" }
+    { enabled: selectedTab === "all", retry: 3, retryDelay: 1000 }
   );
 
   // 難易度別ランキングを取得
-  const { data: easyData, isLoading: isLoadingEasy } = trpc.leaderboard.getByDifficulty.useQuery(
+  const { data: easyData, isLoading: isLoadingEasy, error: errorEasy, refetch: refetchEasy } = trpc.leaderboard.getByDifficulty.useQuery(
     { difficulty: "easy", limit: 100 },
-    { enabled: selectedTab === "easy" }
+    { enabled: selectedTab === "easy", retry: 3, retryDelay: 1000 }
   );
 
-  const { data: normalData, isLoading: isLoadingNormal } = trpc.leaderboard.getByDifficulty.useQuery(
+  const { data: normalData, isLoading: isLoadingNormal, error: errorNormal, refetch: refetchNormal } = trpc.leaderboard.getByDifficulty.useQuery(
     { difficulty: "normal", limit: 100 },
-    { enabled: selectedTab === "normal" }
+    { enabled: selectedTab === "normal", retry: 3, retryDelay: 1000 }
   );
 
-  const { data: hardData, isLoading: isLoadingHard } = trpc.leaderboard.getByDifficulty.useQuery(
+  const { data: hardData, isLoading: isLoadingHard, error: errorHard, refetch: refetchHard } = trpc.leaderboard.getByDifficulty.useQuery(
     { difficulty: "hard", limit: 100 },
-    { enabled: selectedTab === "hard" }
+    { enabled: selectedTab === "hard", retry: 3, retryDelay: 1000 }
   );
 
   const isLoading = isLoadingAll || isLoadingEasy || isLoadingNormal || isLoadingHard;
+  const error = errorAll || errorEasy || errorNormal || errorHard;
+  
+  const handleRefetch = () => {
+    if (selectedTab === "all") refetchAll();
+    else if (selectedTab === "easy") refetchEasy();
+    else if (selectedTab === "normal") refetchNormal();
+    else if (selectedTab === "hard") refetchHard();
+  };
 
   // 表示するデータを選択
   const displayData =
@@ -95,10 +103,30 @@ export default function LeaderboardScreen() {
         {isLoading ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#DC143C" />
+            <Text className="text-gray-400 text-sm mt-4">読み込み中...</Text>
+          </View>
+        ) : error ? (
+          <View className="flex-1 justify-center items-center gap-4">
+            <Text className="text-red-400 text-lg">データの読み込みに失敗しました</Text>
+            <Text className="text-gray-400 text-sm text-center px-4">
+              サーバーが起動中の可能性があります
+            </Text>
+            <TouchableOpacity
+              onPress={handleRefetch}
+              className="bg-primary px-8 py-3 rounded-full active:opacity-80"
+            >
+              <Text className="text-white font-bold">再読み込み</Text>
+            </TouchableOpacity>
           </View>
         ) : displayData.length === 0 ? (
-          <View className="flex-1 justify-center items-center">
+          <View className="flex-1 justify-center items-center gap-4">
             <Text className="text-gray-400 text-lg">まだスコアがありません</Text>
+            <TouchableOpacity
+              onPress={handleRefetch}
+              className="bg-gray-800 px-6 py-2 rounded-full active:opacity-80"
+            >
+              <Text className="text-white font-bold">更新</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <FlatList

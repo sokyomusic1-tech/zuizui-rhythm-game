@@ -1,4 +1,4 @@
-import { Note, Difficulty } from "./game-context";
+import { Difficulty, Note } from "./game-context";
 
 // 曲の長さ: 3分26秒 = 206秒
 const SONG_DURATION = 206;
@@ -42,19 +42,68 @@ export function generateNotes(difficulty: Difficulty, bpm: number, songDuration?
   while (currentTime < duration - 10) {
     // 最後の10秒前まで
     const lane = Math.floor(Math.random() * laneVariety) as 0 | 1 | 2 | 3;
-    notes.push({
-      id: `note_${noteId++}`,
-      time: currentTime,
-      lane,
-    });
-
-    // 次のノーツまでの時間（ランダム性を少し加える）
-    const randomOffset = (Math.random() - 0.5) * noteInterval * 0.2;
-    currentTime += noteInterval + randomOffset;
+    
+    // 難易庥別の特殊ノーツ生成確率
+    const random = Math.random();
+    let longNoteChance = 0;
+    let flickNoteChance = 0;
+    
+    if (difficulty === "easy") {
+      longNoteChance = 0.1;  // 10%
+      flickNoteChance = 0.1; // 10%
+    } else if (difficulty === "normal") {
+      longNoteChance = 0.2;  // 20%
+      flickNoteChance = 0.15; // 15%
+    } else if (difficulty === "hard") {
+      longNoteChance = 0.3;  // 30%
+      flickNoteChance = 0.2; // 20%
+    }
+    
+    const isLongNote = random < longNoteChance;
+    const isFlickNote = random >= longNoteChance && random < longNoteChance + flickNoteChance;
+    
+    if (isLongNote) {
+      // ロングノーツ（1拍～2拍の長さ）
+      const longDuration = BEAT_INTERVAL * (1 + Math.floor(Math.random() * 2));
+      notes.push({
+        id: `note_${noteId++}`,
+        time: currentTime,
+        lane,
+        type: "long",
+        duration: longDuration,
+      });
+      // ロングノーツの場合は長さ分だけ次のノーツを遅らせる
+      currentTime += longDuration + noteInterval;
+    } else if (isFlickNote) {
+      // フリックノーツ（ランダムな方向）
+      const directions: ("up" | "down" | "left" | "right")[] = ["up", "down", "left", "right"];
+      const flickDirection = directions[Math.floor(Math.random() * directions.length)];
+      notes.push({
+        id: `note_${noteId++}`,
+        time: currentTime,
+        lane,
+        type: "flick",
+        flickDirection,
+      });
+      // 次のノーツまでの時間
+      const randomOffset = (Math.random() - 0.5) * noteInterval * 0.2;
+      currentTime += noteInterval + randomOffset;
+    } else {
+      // 通常ノーツ
+      notes.push({
+        id: `note_${noteId++}`,
+        time: currentTime,
+        lane,
+      });
+      // 次のノーツまでの時間（ランダム性を少し加える）
+      const randomOffset = (Math.random() - 0.5) * noteInterval * 0.2;
+      currentTime += noteInterval + randomOffset;
+    }
   }
 
   // アウトロ（最後の10秒は徐々に減らす）
-  while (currentTime < duration - 2) {
+  while (currentTime < duration - 5) {
+    // 曲の終わり5秒前まで（安全マージン）
     const lane = Math.floor(Math.random() * laneVariety) as 0 | 1 | 2 | 3;
     notes.push({
       id: `note_${noteId++}`,

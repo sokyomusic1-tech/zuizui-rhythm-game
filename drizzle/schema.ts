@@ -1,24 +1,28 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 /**
  * Core user table backing auth flow.
  * Extend this file with additional tables as your product grows.
  * Columns use camelCase to match both database fields and generated types.
  */
-export const users = mysqlTable("users", {
+
+export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const difficultyEnum = pgEnum("difficulty", ["easy", "normal", "hard"]);
+
+export const users = pgTable("users", {
   /**
    * Surrogate primary key. Auto-incremented numeric value managed by the database.
    * Use this for relations between tables.
    */
-  id: int("id").autoincrement().primaryKey(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: roleEnum("role").default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
@@ -26,15 +30,16 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // Scores table for leaderboard
-export const scores = mysqlTable("scores", {
-  id: int("id").autoincrement().primaryKey(),
+export const scores = pgTable("scores", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   username: varchar("username", { length: 50 }).notNull(),
-  score: int("score").notNull(),
-  difficulty: mysqlEnum("difficulty", ["easy", "normal", "hard"]).notNull(),
-  perfect: int("perfect").notNull().default(0),
-  good: int("good").notNull().default(0),
-  miss: int("miss").notNull().default(0),
-  maxCombo: int("maxCombo").notNull().default(0),
+  score: integer("score").notNull(),
+  songId: varchar("songId", { length: 50 }).notNull(), // 曲ID（zuizui_song, zuizui_anime, moechakka_fire）
+  difficulty: difficultyEnum("difficulty").notNull(),
+  perfect: integer("perfect").notNull().default(0),
+  good: integer("good").notNull().default(0),
+  miss: integer("miss").notNull().default(0),
+  maxCombo: integer("maxCombo").notNull().default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

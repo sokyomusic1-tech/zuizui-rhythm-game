@@ -30,11 +30,16 @@ export function createTRPCClient() {
           return token ? { Authorization: `Bearer ${token}` } : {};
         },
         // Custom fetch to include credentials for cookie-based auth
+        // Extended timeout for Render free tier cold starts (60 seconds)
         fetch(url, options) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+          
           return fetch(url, {
             ...options,
             credentials: "include",
-          });
+            signal: controller.signal,
+          }).finally(() => clearTimeout(timeoutId));
         },
       }),
     ],
