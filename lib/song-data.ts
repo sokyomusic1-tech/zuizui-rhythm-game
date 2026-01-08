@@ -18,7 +18,7 @@ export const songs: SongData[] = [
     duration: 284, // 4分44秒
     durationDisplay: "4:44",
     coverImage: require("@/assets/images/cruel_angel_thesis_cover.jpg"),
-    audioFile: require("@/assets/audio/cruel_angel_thesis.mp4"),
+    audioFile: require("@/assets/audio/cruel_angel_thesis.mp3"),
     backgroundVideo: require("@/assets/audio/cruel_angel_thesis.mp4"),
   },
   {
@@ -28,7 +28,7 @@ export const songs: SongData[] = [
     duration: 250, // 4分10秒
     durationDisplay: "4:10",
     coverImage: require("@/assets/images/solid_state_scouter_cover.jpg"),
-    audioFile: require("@/assets/audio/solid_state_scouter.mp4"),
+    audioFile: require("@/assets/audio/solid_state_scouter.mp3"),
     backgroundVideo: require("@/assets/audio/solid_state_scouter.mp4"),
   },
   {
