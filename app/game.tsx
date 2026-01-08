@@ -390,8 +390,11 @@ export default function GameScreen() {
           return true; // 長押し中はMiss判定しない
         }
 
+        // ロングノーツの場合は終了時間を基準に判定
+        const isLongNote = note.type === "long" && note.duration;
         const noteTime = note.time * 1000;
-        const timeDiff = currentTime - noteTime;
+        const noteEndTime = isLongNote ? noteTime + (note.duration! * 1000) : noteTime;
+        const timeDiff = currentTime - noteEndTime;
 
         // Miss判定の範囲を超えたら削除
         if (timeDiff > MISS_THRESHOLD) {

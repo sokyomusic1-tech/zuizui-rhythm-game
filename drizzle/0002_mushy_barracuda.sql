@@ -1,1 +1,0 @@
-ALTER TABLE `scores` ADD `songId` varchar(50) NOT NULL;
