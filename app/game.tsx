@@ -686,7 +686,7 @@ export default function GameScreen() {
           <Video
             source={selectedSong.backgroundVideo}
             className="absolute inset-0 w-full h-full"
-            style={{ opacity: feverMode ? 0.5 : 0.3 }}
+            style={{ opacity: feverMode ? 0.8 : 0.7 }}
             resizeMode={ResizeMode.COVER}
             shouldPlay={gameStarted}
             isLooping
@@ -696,7 +696,7 @@ export default function GameScreen() {
           <Image
             source={{ uri: typeof selectedSong.backgroundImage === 'string' ? selectedSong.backgroundImage : undefined }}
             className="absolute inset-0 w-full h-full"
-            style={{ opacity: feverMode ? 0.5 : 0.3 }}
+            style={{ opacity: feverMode ? 0.8 : 0.7 }}
             resizeMode="cover"
           />
         )}
