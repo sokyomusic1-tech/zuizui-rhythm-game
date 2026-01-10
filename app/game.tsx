@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { View, Text, Pressable, Dimensions, Platform, Image } from "react-native";
+import { View, Text, Pressable, Dimensions, Platform, Image, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Video, ResizeMode } from "expo-av";
@@ -697,11 +697,11 @@ export default function GameScreen() {
         
         {/* 背景動画または背景画像 */}
         {selectedSong?.backgroundVideo ? (
-          <View style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1, opacity: feverMode ? 0.8 : 0.7 }}>
+          <View style={[styles.videoContainer, { opacity: feverMode ? 0.8 : 0.7 }]}>
             <Video
               ref={videoRef}
               source={selectedSong.backgroundVideo}
-              style={{ width: '100%', height: '100%' }}
+              style={styles.video}
               resizeMode={ResizeMode.COVER}
               shouldPlay={gameStarted}
               isLooping
@@ -946,3 +946,18 @@ export default function GameScreen() {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  videoContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
+  },
+  video: {
+    width: '100%',
+    height: '100%',
+  },
+});
