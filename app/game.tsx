@@ -682,7 +682,7 @@ export default function GameScreen() {
 
   return (
     <ScreenContainer className="bg-black">
-      <View className="flex-1">
+      <View className="flex-1" style={{ position: 'relative', zIndex: 0 }}>
         {/* フィーバーモードの背景エフェクト */}
         {feverMode && (
           <View
@@ -691,6 +691,7 @@ export default function GameScreen() {
               backgroundColor: 'rgba(255, 215, 0, 0.15)',
               borderWidth: 4,
               borderColor: '#FFD700',
+              zIndex: 5,
             }}
           />
         )}
@@ -704,7 +705,7 @@ export default function GameScreen() {
               left: 0,
               width: '100%',
               height: '100%',
-              zIndex: 0,
+              zIndex: -1,
               opacity: feverMode ? 0.8 : 0.7,
               overflow: 'hidden'
             }}>
