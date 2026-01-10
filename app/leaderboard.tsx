@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import type { Difficulty } from "@/lib/game-context";
 import { GoogleAdSense } from "@/components/google-adsense";
+import { songs } from "@/lib/song-data";
 
 type DifficultyTab = Difficulty | "all";
 
@@ -153,11 +154,16 @@ export default function LeaderboardScreen() {
                       </Text>
                     </View>
 
-                    {/* ユーザー名とスコア */}
+                    {/* ユーザー名、曲名、難易度 */}
                     <View className="flex-1 mx-4">
                       <Text className="text-white text-lg font-bold" numberOfLines={1}>
                         {item.username}
                       </Text>
+                      {item.songId && (
+                        <Text className="text-blue-400 text-xs" numberOfLines={1}>
+                          {songs.find(s => s.id === item.songId)?.title || item.songId}
+                        </Text>
+                      )}
                       {"displayDifficulty" in item && item.displayDifficulty ? (
                         <Text className="text-gray-400 text-xs">
                           {String(item.displayDifficulty)}
