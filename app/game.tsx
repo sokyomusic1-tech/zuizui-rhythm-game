@@ -581,15 +581,7 @@ export default function GameScreen() {
       return; // 長押し開始時は判定しない
     }
 
-    // フリックノーツの場合はスワイプ開始位置を記録
-    if (closestNote.type === "flick" && closestNote.flickDirection) {
-      // ノーツをactiveNotesから削除（連続ノーツの誤判定を防ぐ）
-      setActiveNotes((prev) => prev.filter((id) => id !== closestNote.id));
-      // スワイプ開始位置を記録（判定はhandleReleaseで行う）
-      return; // フリックはタップでは判定しない
-    }
-
-    // 通常ノーツの場合は削除
+    // ノーツをactiveNotesから削除
     setActiveNotes((prev) => prev.filter((id) => id !== closestNote.id));
 
     // 4段階判定
