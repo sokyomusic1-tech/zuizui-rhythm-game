@@ -704,7 +704,7 @@ export default function GameScreen() {
               left: 0,
               width: '100%',
               height: '100%',
-              zIndex: -1,
+              zIndex: 0,
               opacity: feverMode ? 0.8 : 0.7,
               overflow: 'hidden'
             }}>
