@@ -995,26 +995,52 @@ export default function GameScreen() {
 
         {/* Google AdSense 広告（タップエリアの下） */}
         {Platform.OS === "web" && gameStarted && (
-          <View
+          <div
             style={{
               position: 'absolute',
               bottom: TAP_AREA_HEIGHT + 10,
               left: 0,
               right: 0,
               zIndex: 100,
-              paddingHorizontal: 10,
+              paddingLeft: 10,
+              paddingRight: 10,
+              pointerEvents: 'none',
             }}
-            pointerEvents="box-none"
           >
             <ins
               className="adsbygoogle"
-              style={{ display: "block", minHeight: 50 }}
+              style={{ display: 'block', minHeight: 50 }}
               data-ad-client="ca-pub-2991936078376292"
               data-ad-slot="5726193644"
               data-ad-format="horizontal"
               data-full-width-responsive="true"
             />
-          </View>
+          </div>
+        )}
+
+        {/* Google AdSense 広告（スコア上） */}
+        {Platform.OS === "web" && gameStarted && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: 0,
+              right: 0,
+              zIndex: 100,
+              paddingLeft: 10,
+              paddingRight: 10,
+              pointerEvents: 'none',
+            }}
+          >
+            <ins
+              className="adsbygoogle"
+              style={{ display: 'block', minHeight: 50 }}
+              data-ad-client="ca-pub-2991936078376292"
+              data-ad-slot="5726193644"
+              data-ad-format="horizontal"
+              data-full-width-responsive="true"
+            />
+          </div>
         )}
 
         {/* オールパーフェクト演出 */}
