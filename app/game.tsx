@@ -697,7 +697,7 @@ export default function GameScreen() {
         
         {/* 背景動画または背景画像 */}
         {selectedSong?.backgroundVideo ? (
-          <View style={[styles.videoContainer, { opacity: feverMode ? 0.8 : 0.7 }]}>
+          <View className="absolute inset-0 w-full h-full" style={{ opacity: feverMode ? 0.8 : 0.7, zIndex: -1 }}>
             <Video
               ref={videoRef}
               source={selectedSong.backgroundVideo}
