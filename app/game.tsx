@@ -548,8 +548,6 @@ export default function GameScreen() {
     tapSound.seekTo(0);
     tapSound.play();
 
-    console.log(`[handleTap] Tap on lane ${lane}, gameTime: ${gameTime}, activeNotes: ${activeNotes.length}, laneNotes after filter: ${laneNotes.length}`);
-
     const currentTime = gameTime;
     const laneNotes = activeNotes
       .map((noteId) => notes.find((n) => n.id === noteId))
@@ -563,7 +561,10 @@ export default function GameScreen() {
         return true;
       });
 
+    console.log(`[handleTap] Tap on lane ${lane}, gameTime: ${gameTime}, activeNotes: ${activeNotes.length}, laneNotes after filter: ${laneNotes.length}`);
+
     if (laneNotes.length === 0) {
+      console.log(`[handleTap] No notes in lane ${lane}, skipping`);
       return; // 空振りはMissにしない
     }
 
@@ -576,11 +577,13 @@ export default function GameScreen() {
     });
 
     if (!closestNote) {
+      console.log(`[handleTap] No closest note found`);
       return;
     }
 
     const noteTime = closestNote.time * 1000;
     const timeDiff = Math.abs(noteTime - currentTime);
+    console.log(`[handleTap] Closest note: ${closestNote.id}, noteTime: ${noteTime}, timeDiff: ${timeDiff}ms, judgement thresholds - Perfect: ${JUDGEMENT_PERFECT}, Good: ${JUDGEMENT_GOOD}, Normal: ${JUDGEMENT_NORMAL}`);
     const timingDiff = currentTime - noteTime; // 正：遅い、負：早い
 
     // Fast/Late判定
@@ -603,7 +606,9 @@ export default function GameScreen() {
     setActiveNotes((prev) => prev.filter((id) => id !== closestNote.id));
 
     // 4段階判定
+    console.log(`[handleTap] Judging note ${closestNote.id}: timeDiff=${timeDiff}ms`);
     if (timeDiff <= JUDGEMENT_PERFECT) {
+      console.log(`[handleTap] -> PERFECT`);
       handlePerfect(timing);
       // Perfectエフェクトをノーツの位置に表示
       const progress = (currentTime - (noteTime - NOTE_FALL_DURATION)) / NOTE_FALL_DURATION;
@@ -618,10 +623,13 @@ export default function GameScreen() {
         });
       }, 500);
     } else if (timeDiff <= JUDGEMENT_GOOD) {
+      console.log(`[handleTap] -> GOOD`);
       handleGood(timing);
     } else if (timeDiff <= JUDGEMENT_NORMAL) {
+      console.log(`[handleTap] -> NORMAL`);
       handleNormal(timing);
     } else {
+      console.log(`[handleTap] -> MISS (timeDiff: ${timeDiff}ms > ${JUDGEMENT_NORMAL}ms)`);
       handleMiss();
     }
   };
