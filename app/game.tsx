@@ -514,7 +514,7 @@ export default function GameScreen() {
     const currentTime = gameTime;
     const laneNotes = activeNotes
       .map((noteId) => notes.find((n) => n.id === noteId))
-      .filter((note) => note && note.lane === lane && !holdingNotes[note.id]); // 長押し中のノーツを除外
+      .filter((note) => note && note.lane === lane && !holdingNotes[note.id] && note.type !== 'flick'); // 長押し中のノーツとフリックノーツを除外
 
     if (laneNotes.length === 0) {
       return; // 空振りはMissにしない
