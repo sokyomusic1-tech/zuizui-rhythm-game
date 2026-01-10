@@ -198,6 +198,7 @@ export default function GameScreen() {
   const processedNotesRef = useRef(new Set<string>());
   const gameEndCalledRef = useRef(false);
   const intervalRef = useRef<any>(null);
+  const videoRef = useRef<any>(null);
 
   const player = useAudioPlayer(selectedSong?.audioFile || require("@/assets/audio/zuizui_song.mp3"));
 
@@ -360,6 +361,19 @@ export default function GameScreen() {
       }
     };
   }, [gameStarted, songDuration, handleGameEnd]);
+
+  // 背景動画の再生制御
+  useEffect(() => {
+    if (videoRef.current && gameStarted) {
+      videoRef.current.playAsync().catch((error: any) => {
+        console.log('Video play error:', error);
+      });
+    } else if (videoRef.current && !gameStarted) {
+      videoRef.current.pauseAsync().catch((error: any) => {
+        console.log('Video pause error:', error);
+      });
+    }
+  }, [gameStarted]);
 
   // ノーツの更新
   useEffect(() => {
@@ -684,6 +698,7 @@ export default function GameScreen() {
         {/* 背景動画または背景画像 */}
         {selectedSong?.backgroundVideo ? (
           <Video
+            ref={videoRef}
             source={selectedSong.backgroundVideo}
             className="absolute inset-0 w-full h-full"
             style={{ opacity: feverMode ? 0.8 : 0.7, width: '100%', height: '100%' }}
