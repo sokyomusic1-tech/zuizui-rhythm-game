@@ -844,7 +844,7 @@ export default function GameScreen() {
         )}
 
         {/* ノーツレーン */}
-        <View className="flex-1 flex-row z-1">
+        <View className="flex-1 flex-row z-10">
           {/* Perfect爆発エフェクト */}
           {Object.entries(perfectEffects).map(([effectId, effect]) => (
             <View
