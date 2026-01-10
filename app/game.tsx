@@ -701,7 +701,7 @@ export default function GameScreen() {
             ref={videoRef}
             source={selectedSong.backgroundVideo}
             className="absolute inset-0 w-full h-full"
-            style={{ opacity: feverMode ? 0.8 : 0.7, width: '100%', height: '100%' }}
+            style={{ opacity: feverMode ? 0.8 : 0.7, width: '100%', height: '100%', zIndex: -1 }}
             resizeMode={ResizeMode.COVER}
             shouldPlay={gameStarted}
             isLooping
