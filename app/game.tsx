@@ -5,6 +5,7 @@ import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Video, ResizeMode } from "expo-av";
 import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
+import { AudioVisualizer } from "@/components/audio-visualizer";
 import { useGame, type JudgementResult } from "@/lib/game-context";
 import { NOTES_DATA, generateNotes } from "@/lib/notes-data";
 
@@ -199,6 +200,7 @@ export default function GameScreen() {
   const gameEndCalledRef = useRef(false);
   const intervalRef = useRef<any>(null);
   const videoRef = useRef<any>(null);
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
 
   const player = useAudioPlayer(selectedSong?.audioFile || require("@/assets/audio/zuizui_song.mp3"));
 
@@ -257,7 +259,11 @@ export default function GameScreen() {
     const isAllPerfect = missCount === 0 && goodCount === 0 && normalCount === 0;
     
     // 音楽を停止
-    player.pause();
+    if (Platform.OS !== 'web') {
+      player.pause();
+    } else if (audioElementRef.current) {
+      audioElementRef.current.pause();
+    }
     
     // タイマーをクリア
     if (intervalRef.current) {
@@ -311,8 +317,17 @@ export default function GameScreen() {
   useEffect(() => {
     if (actualSongDuration) {
       setSongDuration(actualSongDuration);
+    } else if (Platform.OS === 'web') {
+      // Web環境: audio要素から取得
+      const checkDuration = setInterval(() => {
+        if (audioElementRef.current && audioElementRef.current.duration > 0) {
+          setSongDuration(audioElementRef.current.duration * 1000);
+          clearInterval(checkDuration);
+        }
+      }, 100);
+      return () => clearInterval(checkDuration);
     } else {
-      // フォールバック: プレイヤーから取得
+      // ネイティブ環境: プレイヤーから取得
       const checkDuration = setInterval(() => {
         if (player.duration && player.duration > 0) {
           setSongDuration(player.duration * 1000);
@@ -332,7 +347,9 @@ export default function GameScreen() {
       return () => clearTimeout(timer);
     } else if (countdown === 0 && !gameStarted) {
       setGameStarted(true);
-      player.play();
+      if (Platform.OS !== 'web') {
+        player.play();
+      }
     }
   }, [countdown, gameStarted, player]);
 
@@ -747,6 +764,30 @@ export default function GameScreen() {
             resizeMode="cover"
           />
         )}
+        
+        {/* Web環境用の音声要素（ビジュアライザー用） */}
+        {Platform.OS === 'web' && (
+          <audio
+            ref={(el) => {
+              audioElementRef.current = el;
+              if (el && gameStarted && el.paused) {
+                el.play().catch(e => console.log('Audio play failed:', e));
+              }
+            }}
+            src={typeof selectedSong?.audioFile === 'string' ? selectedSong.audioFile : (selectedSong?.audioFile as any)?.uri || (selectedSong?.audioFile as any)}
+            style={{ display: 'none' }}
+          />
+        )}
+        
+        {/* ビジュアライザー */}
+        {Platform.OS === 'web' && (
+          <AudioVisualizer
+            audioElement={audioElementRef.current}
+            isPlaying={gameStarted}
+            feverMode={feverMode}
+          />
+        )}
+        
         {/* カウントダウン */}
         {!gameStarted && countdown > 0 && (
           <View className="absolute inset-0 items-center justify-center z-50 bg-black/80">
