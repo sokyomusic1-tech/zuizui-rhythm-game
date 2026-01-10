@@ -433,6 +433,12 @@ export default function GameScreen() {
           return true; // 長押し中はMiss判定しない
         }
 
+        // フリックノーツはhandleReleaseで専用に処理されるのでスキップ
+        if (note.type === "flick") {
+          console.log(`[Miss判定] フリックノート ${noteId} をスキップ (lane: ${note.lane}, time: ${note.time})`);
+          return true; // フリックノーツは自動Miss判定しない
+        }
+
         // ロングノーツの場合は終了時間を基準に判定
         const isLongNote = note.type === "long" && note.duration;
         const noteTime = note.time * 1000;
@@ -454,6 +460,8 @@ export default function GameScreen() {
     const laneNotes = activeNotes
       .map((noteId) => notes.find((n) => n.id === noteId))
       .filter((note) => note && note.lane === lane && note.type === "flick");
+    
+    console.log(`[handleRelease] Release on lane ${lane}, gameTime: ${gameTime}, flick notes found: ${laneNotes.length}`);
 
     if (laneNotes.length > 0) {
       // 最も近いフリックノーツを判定
@@ -467,6 +475,8 @@ export default function GameScreen() {
       if (closestNote) {
         const noteTime = closestNote.time * 1000;
         const timeDiff = Math.abs(noteTime - gameTime);
+
+        console.log(`[handleRelease] フリックノート ${closestNote.id} を判定 (timeDiff: ${timeDiff}ms)`);
 
         // ノーツを削除
         setActiveNotes((prev) => prev.filter((id) => id !== closestNote.id));
@@ -538,12 +548,20 @@ export default function GameScreen() {
     tapSound.seekTo(0);
     tapSound.play();
 
-    console.log(`Tap on lane ${lane}, gameTime: ${gameTime}, activeNotes:`, activeNotes.length);
+    console.log(`[handleTap] Tap on lane ${lane}, gameTime: ${gameTime}, activeNotes: ${activeNotes.length}, laneNotes after filter: ${laneNotes.length}`);
 
     const currentTime = gameTime;
     const laneNotes = activeNotes
       .map((noteId) => notes.find((n) => n.id === noteId))
-      .filter((note) => note && note.lane === lane && !holdingNotes[note.id] && note.type !== 'flick'); // 長押し中のノーツとフリックノーツを除外
+      .filter((note) => {
+        if (!note || note.lane !== lane) return false;
+        if (holdingNotes[note.id]) return false;
+        if (note.type === 'flick') {
+          console.log(`[handleTap] フリックノート ${note.id} を除外 (lane: ${lane})`);
+          return false;
+        }
+        return true;
+      });
 
     if (laneNotes.length === 0) {
       return; // 空振りはMissにしない
