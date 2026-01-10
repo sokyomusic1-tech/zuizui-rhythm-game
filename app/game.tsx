@@ -697,17 +697,47 @@ export default function GameScreen() {
         
         {/* 背景動画または背景画像 */}
         {selectedSong?.backgroundVideo ? (
-          <View className="absolute inset-0 w-full h-full" style={{ opacity: feverMode ? 0.8 : 0.7, zIndex: -1 }}>
-            <Video
-              ref={videoRef}
-              source={selectedSong.backgroundVideo}
-              style={styles.video}
-              resizeMode={ResizeMode.COVER}
-              shouldPlay={gameStarted}
-              isLooping
-              isMuted
-            />
-          </View>
+          Platform.OS === 'web' ? (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              zIndex: -1,
+              opacity: feverMode ? 0.8 : 0.7,
+              overflow: 'hidden'
+            }}>
+              <video
+                ref={(el) => {
+                  if (el && gameStarted && el.paused) {
+                    el.play().catch(e => console.log('Video play failed:', e));
+                  }
+                }}
+                src={typeof selectedSong.backgroundVideo === 'string' ? selectedSong.backgroundVideo : (selectedSong.backgroundVideo as any)?.uri || (selectedSong.backgroundVideo as any)}
+                loop
+                muted
+                playsInline
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+            </div>
+          ) : (
+            <View className="absolute inset-0 w-full h-full" style={{ opacity: feverMode ? 0.8 : 0.7, zIndex: -1 }}>
+              <Video
+                ref={videoRef}
+                source={selectedSong.backgroundVideo}
+                style={styles.video}
+                resizeMode={ResizeMode.COVER}
+                shouldPlay={gameStarted}
+                isLooping
+                isMuted
+              />
+            </View>
+          )
         ) : selectedSong?.backgroundImage && (
           <Image
             source={{ uri: typeof selectedSong.backgroundImage === 'string' ? selectedSong.backgroundImage : undefined }}
