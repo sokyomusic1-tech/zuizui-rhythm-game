@@ -313,6 +313,18 @@ export default function GameScreen() {
     setAudioModeAsync({ playsInSilentMode: true });
   }, []);
 
+  // AdSenseの初期化
+  useEffect(() => {
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      try {
+        // @ts-ignore
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (error) {
+        console.error("AdSense error:", error);
+      }
+    }
+  }, []);
+
   // 曲の長さを設定（楽曲データを優先）
   useEffect(() => {
     if (actualSongDuration) {
@@ -988,6 +1000,30 @@ export default function GameScreen() {
             </View>
           ))}
         </View>
+
+        {/* Google AdSense 広告（タップエリアの下） */}
+        {Platform.OS === "web" && gameStarted && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: TAP_AREA_HEIGHT + 10,
+              left: 0,
+              right: 0,
+              zIndex: 100,
+              paddingHorizontal: 10,
+            }}
+            pointerEvents="box-none"
+          >
+            <ins
+              className="adsbygoogle"
+              style={{ display: "block", minHeight: 50 }}
+              data-ad-client="ca-pub-2991936078376292"
+              data-ad-slot="5726193644"
+              data-ad-format="horizontal"
+              data-full-width-responsive="true"
+            />
+          </View>
+        )}
 
         {/* オールパーフェクト演出 */}
         {showAllPerfect && (
