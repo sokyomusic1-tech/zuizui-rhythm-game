@@ -697,16 +697,17 @@ export default function GameScreen() {
         
         {/* 背景動画または背景画像 */}
         {selectedSong?.backgroundVideo ? (
-          <Video
-            ref={videoRef}
-            source={selectedSong.backgroundVideo}
-            className="absolute inset-0 w-full h-full"
-            style={{ opacity: feverMode ? 0.8 : 0.7, width: '100%', height: '100%', zIndex: -1 }}
-            resizeMode={ResizeMode.COVER}
-            shouldPlay={gameStarted}
-            isLooping
-            isMuted
-          />
+          <View style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1, opacity: feverMode ? 0.8 : 0.7 }}>
+            <Video
+              ref={videoRef}
+              source={selectedSong.backgroundVideo}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode={ResizeMode.COVER}
+              shouldPlay={gameStarted}
+              isLooping
+              isMuted
+            />
+          </View>
         ) : selectedSong?.backgroundImage && (
           <Image
             source={{ uri: typeof selectedSong.backgroundImage === 'string' ? selectedSong.backgroundImage : undefined }}
