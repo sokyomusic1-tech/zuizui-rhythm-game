@@ -8,6 +8,18 @@ import { Platform } from "react-native";
 export function AdSenseHead() {
   useEffect(() => {
     if (Platform.OS === "web" && typeof document !== "undefined") {
+      // Check if meta tag already exists
+      const existingMeta = document.querySelector(
+        'meta[name="google-adsense-account"]'
+      );
+
+      if (!existingMeta) {
+        const meta = document.createElement("meta");
+        meta.name = "google-adsense-account";
+        meta.content = "ca-pub-2991936078376292";
+        document.head.appendChild(meta);
+      }
+
       // Check if script already exists
       const existingScript = document.querySelector(
         'script[src*="adsbygoogle.js"]'
