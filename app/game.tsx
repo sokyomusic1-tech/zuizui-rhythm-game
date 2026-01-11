@@ -169,9 +169,22 @@ const Note = React.memo(({ note, gameTime, noteFallDuration }: { note: any; game
 export default function GameScreen() {
   const router = useRouter();
   const { currentDifficulty, saveHighScore, setLastGameResult, selectedSong, noteSpeed } = useGame();
-  
+
   // ノーツスピードに応じて落下時間を調整（スピードが速いほど短く）
   const NOTE_FALL_DURATION = BASE_NOTE_FALL_DURATION / noteSpeed;
+
+  // ノーツスピードに応じたスコア倍率を計算
+  const getSpeedMultiplier = (speed: number): number => {
+    if (speed <= 0.5) return 0.8;
+    if (speed <= 0.75) return 0.9;
+    if (speed <= 1.0) return 1.0;
+    if (speed <= 1.25) return 1.1;
+    if (speed <= 1.5) return 1.2;
+    if (speed <= 1.75) return 1.3;
+    return 1.5; // 2.0x
+  };
+
+  const speedMultiplier = getSpeedMultiplier(noteSpeed);
   const [gameStarted, setGameStarted] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [gameTime, setGameTime] = useState(0);
@@ -635,7 +648,8 @@ export default function GameScreen() {
   };
 
   const handlePerfect = (timing?: "fast" | "late" | "perfect") => {
-    const scoreBonus = feverMode ? 150 : 100; // フィーバー中は1.5倍
+    const baseScore = feverMode ? 150 : 100; // フィーバー中は1.5倍
+    const scoreBonus = Math.round(baseScore * speedMultiplier); // スピード倍率を適用
     setScore((prev) => prev + scoreBonus);
     setCombo((prev) => {
       const newCombo = prev + 1;
@@ -664,7 +678,8 @@ export default function GameScreen() {
   };
 
   const handleGood = (timing?: "fast" | "late" | "perfect") => {
-    const scoreBonus = feverMode ? 105 : 70; // フィーバー中は1.5倍
+    const baseScore = feverMode ? 105 : 70; // フィーバー中は1.5倍
+    const scoreBonus = Math.round(baseScore * speedMultiplier); // スピード倍率を適用
     setScore((prev) => prev + scoreBonus);
     setCombo((prev) => {
       const newCombo = prev + 1;
@@ -682,7 +697,8 @@ export default function GameScreen() {
   };
 
   const handleNormal = (timing?: "fast" | "late" | "perfect") => {
-    const scoreBonus = feverMode ? 60 : 40; // フィーバー中は1.5倍
+    const baseScore = feverMode ? 60 : 40; // フィーバー中は1.5倍
+    const scoreBonus = Math.round(baseScore * speedMultiplier); // スピード倍率を適用
     setScore((prev) => prev + scoreBonus);
     setCombo((prev) => {
       const newCombo = prev + 1;
