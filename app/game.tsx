@@ -581,12 +581,18 @@ export default function GameScreen() {
       return; // 空振りはMissにしない
     }
 
-    // 最も近いノーツを判定
-    const closestNote = laneNotes.reduce((closest, note) => {
-      if (!note || !closest) return note || closest;
-      const noteDiff = Math.abs(note.time * 1000 - currentTime);
-      const closestDiff = Math.abs(closest.time * 1000 - currentTime);
-      return noteDiff < closestDiff ? note : closest;
+    // 時間順で最初のノーツを判定（手前のノーツを優先）
+    const sortedNotes = laneNotes.sort((a, b) => {
+      if (!a || !b) return 0;
+      return (a.time * 1000) - (b.time * 1000);
+    });
+    
+    // 判定範囲内の最初のノーツを選択
+    const closestNote = sortedNotes.find(note => {
+      if (!note) return false;
+      const noteTime = note.time * 1000;
+      const timeDiff = Math.abs(noteTime - currentTime);
+      return timeDiff <= JUDGEMENT_NORMAL; // 判定範囲内
     });
 
     if (!closestNote) {
