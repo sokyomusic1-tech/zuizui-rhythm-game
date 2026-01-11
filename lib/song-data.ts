@@ -71,4 +71,14 @@ export const songs: SongData[] = [
     audioFile: require("@/assets/audio/end_of_the_sky.mp3"),
     backgroundImage: require("@/assets/images/end_of_the_sky_cover.jpg"), // 同じ画像を使用
   },
+  {
+    id: "grunge_against_power",
+    title: "Grunge Against Power - Special Thanks みゆう",
+    bpm: 93.8,
+    duration: 188, // 3分08秒
+    durationDisplay: "3:08",
+    coverImage: require("@/assets/images/grunge_against_power_cover.jpg"),
+    audioFile: require("@/assets/audio/grunge_against_power.mp3"),
+    backgroundImage: require("@/assets/images/grunge_against_power_cover.jpg"), // 同じ画像を使用
+  },
 ];
