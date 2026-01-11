@@ -9,7 +9,7 @@ const SONG_DURATION = 206;
  * @param bpm 曲のBPM
  * @param songDuration 曲の長さ（秒）
  */
-export function generateNotes(difficulty: Difficulty, bpm: number, songDuration?: number): Note[] {
+export function generateNotes(difficulty: Difficulty, bpm: number, songDuration?: number, isPractice: boolean = false): Note[] {
   const notes: Note[] = [];
   let noteId = 0;
   const BEAT_INTERVAL = 60 / bpm; // 1拍の秒数
@@ -35,12 +35,16 @@ export function generateNotes(difficulty: Difficulty, bpm: number, songDuration?
   // 実際の曲の長さを使用（指定がない場合はデフォルト値）
   const duration = songDuration || SONG_DURATION;
 
-  // イントロ（最初の8秒はノーツなし）
-  let currentTime = 8;
+  // 練習モードの場合はイントロとアウトロを短くする
+  const introTime = isPractice ? 2 : 8;
+  const outroMargin = isPractice ? 2 : 10;
+  
+  // イントロ
+  let currentTime = introTime;
 
   // メインパート
-  while (currentTime < duration - 10) {
-    // 最後の10秒前まで
+  while (currentTime < duration - outroMargin) {
+    // 最後の数秒前まで
     const lane = Math.floor(Math.random() * laneVariety) as 0 | 1 | 2 | 3;
     
     // 難易庥別の特殊ノーツ生成確率
@@ -101,9 +105,10 @@ export function generateNotes(difficulty: Difficulty, bpm: number, songDuration?
     }
   }
 
-  // アウトロ（最後の10秒は徐々に減らす）
-  while (currentTime < duration - 5) {
-    // 曲の終わり5秒前まで（安全マージン）
+  // アウトロ（最後は徐々に減らす）
+  const outroSafetyMargin = isPractice ? 1 : 5;
+  while (currentTime < duration - outroSafetyMargin) {
+    // 曲の終わり数秒前まで（安全マージン）
     const lane = Math.floor(Math.random() * laneVariety) as 0 | 1 | 2 | 3;
     notes.push({
       id: `note_${noteId++}`,

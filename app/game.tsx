@@ -219,8 +219,9 @@ export default function GameScreen() {
 
   // 選択された曲のBPMと長さに基づいてノーツを生成
   const notes = useMemo(() => {
+    const isPractice = selectedSong?.id === "practice";
     return currentDifficulty && selectedSong
-      ? generateNotes(currentDifficulty, selectedSong.bpm, selectedSong.duration)
+      ? generateNotes(currentDifficulty, selectedSong.bpm, selectedSong.duration, isPractice)
       : currentDifficulty
       ? NOTES_DATA[currentDifficulty]
       : [];
