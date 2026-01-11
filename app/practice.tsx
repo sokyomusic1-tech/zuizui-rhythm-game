@@ -3,14 +3,21 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useGame } from "@/lib/game-context";
+import { songs } from "@/lib/song-data";
 
 export default function PracticeScreen() {
   const router = useRouter();
   const { setSelectedSong, setCurrentDifficulty } = useGame();
 
   const handleStartPractice = () => {
+    // 練習曲を取得
+    const practiceSong = songs.find(song => song.id === "practice");
+    if (!practiceSong) {
+      console.error("Practice song not found");
+      return;
+    }
     // 練習曲を選択
-    setSelectedSong("practice");
+    setSelectedSong(practiceSong.id);
     // 難易度をEASYに設定
     setCurrentDifficulty("easy");
     // ゲーム画面に遷移
