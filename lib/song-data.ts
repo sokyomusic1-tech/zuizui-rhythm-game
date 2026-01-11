@@ -12,6 +12,16 @@ export interface SongData {
 
 export const songs: SongData[] = [
   {
+    id: "practice",
+    title: "練習モード - 初心者向け",
+    bpm: 80,
+    duration: 30, // 30秒
+    durationDisplay: "0:30",
+    coverImage: require("@/assets/images/icon.png"), // デフォルトアイコンを使用
+    audioFile: require("@/assets/audio/practice_song.mp3"),
+    backgroundImage: require("@/assets/images/icon.png"),
+  },
+  {
     id: "cruel_angel_thesis",
     title: "【エヴァ】残酷な天使のテーゼ Cyber Angel Thesis cover×Metal×EDM アレンジ",
     bpm: 129.3,

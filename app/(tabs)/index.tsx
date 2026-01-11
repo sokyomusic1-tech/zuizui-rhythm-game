@@ -147,6 +147,13 @@ export default function HomeScreen() {
             >
               <Text className="text-gray-400 font-bold text-xl">設定</Text>
             </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => router.push("/tutorial")}
+              className="bg-blue-600 px-10 py-4 rounded-full active:opacity-80 border-2 border-blue-400"
+            >
+              <Text className="text-white font-bold text-xl">🎮 チュートリアル</Text>
+            </TouchableOpacity>
           </View>
 
           {/* ユーザー名表示 */}
