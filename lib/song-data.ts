@@ -63,7 +63,7 @@ export const songs: SongData[] = [
   },
   {
     id: "end_of_the_sky",
-    title: "End of the Sky - Special Thanks 魔恨",
+    title: "End of the Sky - Special Thanks 魔努",
     bpm: 145.6,
     duration: 255, // 4分15秒
     durationDisplay: "4:15",
