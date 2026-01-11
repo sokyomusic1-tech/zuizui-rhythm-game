@@ -788,7 +788,7 @@ export default function GameScreen() {
           )
         ) : selectedSong?.backgroundImage && (
           <Image
-            source={{ uri: typeof selectedSong.backgroundImage === 'string' ? selectedSong.backgroundImage : undefined }}
+            source={typeof selectedSong.backgroundImage === 'string' ? { uri: selectedSong.backgroundImage } : selectedSong.backgroundImage}
             className="absolute inset-0 w-full h-full"
             style={{ opacity: feverMode ? 0.8 : 0.7 }}
             resizeMode="cover"
