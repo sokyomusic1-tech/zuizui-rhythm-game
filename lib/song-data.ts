@@ -61,4 +61,14 @@ export const songs: SongData[] = [
     audioFile: require("@/assets/audio/zuizui_song.mp3"),
     backgroundImage: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663153379247/TxPbLVQBPuXQYZMH.jpg", // 同じ画像を使用
   },
+  {
+    id: "end_of_the_sky",
+    title: "End of the Sky - Special Thanks 魔恨",
+    bpm: 145.6,
+    duration: 255, // 4分15秒
+    durationDisplay: "4:15",
+    coverImage: require("@/assets/images/end_of_the_sky_cover.jpg"),
+    audioFile: require("@/assets/audio/end_of_the_sky.mp3"),
+    backgroundImage: require("@/assets/images/end_of_the_sky_cover.jpg"), // 同じ画像を使用
+  },
 ];
