@@ -10,6 +10,7 @@ const SONG_DURATION = 206;
  * @param songDuration 曲の長さ（秒）
  */
 export function generateNotes(difficulty: Difficulty, bpm: number, songDuration?: number, isPractice: boolean = false): Note[] {
+  console.log("[generateNotes] Called with:", { difficulty, bpm, songDuration, isPractice });
   const notes: Note[] = [];
   let noteId = 0;
   const BEAT_INTERVAL = 60 / bpm; // 1拍の秒数
@@ -118,6 +119,7 @@ export function generateNotes(difficulty: Difficulty, bpm: number, songDuration?
     currentTime += noteInterval * 2; // 間隔を広げる
   }
 
+  console.log("[generateNotes] Generated", notes.length, "notes");
   return notes;
 }
 

@@ -220,11 +220,20 @@ export default function GameScreen() {
   // 選択された曲のBPMと長さに基づいてノーツを生成
   const notes = useMemo(() => {
     const isPractice = selectedSong?.id === "practice";
-    return currentDifficulty && selectedSong
+    console.log("[game.tsx] Generating notes:", {
+      selectedSong: selectedSong?.id,
+      isPractice,
+      difficulty: currentDifficulty,
+      bpm: selectedSong?.bpm,
+      duration: selectedSong?.duration
+    });
+    const generatedNotes = currentDifficulty && selectedSong
       ? generateNotes(currentDifficulty, selectedSong.bpm, selectedSong.duration, isPractice)
       : currentDifficulty
       ? NOTES_DATA[currentDifficulty]
       : [];
+    console.log("[game.tsx] Generated notes count:", generatedNotes.length);
+    return generatedNotes;
   }, [currentDifficulty, selectedSong]);
 
   // コンポーネントのアンマウント時に音楽を停止
@@ -366,12 +375,14 @@ export default function GameScreen() {
 
   // カウントダウン
   useEffect(() => {
+    console.log("[game.tsx] Countdown:", countdown, "gameStarted:", gameStarted);
     if (countdown > 0) {
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
       }, 1000);
       return () => clearTimeout(timer);
     } else if (countdown === 0 && !gameStarted) {
+      console.log("[game.tsx] Starting game!");
       setGameStarted(true);
       if (Platform.OS !== 'web') {
         player.play();
@@ -381,6 +392,7 @@ export default function GameScreen() {
 
   // ゲームタイマー
   useEffect(() => {
+    console.log("[game.tsx] Game timer check:", { gameStarted, songDuration });
     if (!gameStarted || !songDuration) return;
 
     intervalRef.current = setInterval(() => {

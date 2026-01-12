@@ -10,17 +10,22 @@ export default function PracticeScreen() {
   const { setSelectedSong, setCurrentDifficulty } = useGame();
 
   const handleStartPractice = () => {
+    console.log("[practice.tsx] Starting practice mode");
     // 練習曲を取得
     const practiceSong = songs.find(song => song.id === "practice");
+    console.log("[practice.tsx] Practice song found:", practiceSong);
     if (!practiceSong) {
-      console.error("Practice song not found");
+      console.error("[practice.tsx] Practice song not found");
       return;
     }
     // 練習曲を選択
+    console.log("[practice.tsx] Setting selected song:", practiceSong.id);
     setSelectedSong(practiceSong.id);
     // 難易度をEASYに設定
+    console.log("[practice.tsx] Setting difficulty: easy");
     setCurrentDifficulty("easy");
     // ゲーム画面に遷移
+    console.log("[practice.tsx] Navigating to /game");
     router.push("/game");
   };
 
